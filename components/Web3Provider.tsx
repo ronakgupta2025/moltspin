@@ -2,43 +2,17 @@
 
 import { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WagmiProvider, http } from 'wagmi';
+import { WagmiProvider, http, createConfig } from 'wagmi';
 import { base } from 'wagmi/chains';
-import { RainbowKitProvider, darkTheme, connectorsForWallets } from '@rainbow-me/rainbowkit';
-import { 
-  rainbowWallet, 
-  walletConnectWallet, 
-  metaMaskWallet,
-  coinbaseWallet,
-} from '@rainbow-me/rainbowkit/wallets';
-import { createConfig } from 'wagmi';
-import '@rainbow-me/rainbowkit/styles.css';
+import { injected, coinbaseWallet } from 'wagmi/connectors';
 
-const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'moltspin-demo';
-
-// Configure wallets
-const connectors = connectorsForWallets(
-  [
-    {
-      groupName: 'Recommended',
-      wallets: [
-        metaMaskWallet,
-        coinbaseWallet,
-        rainbowWallet,
-        walletConnectWallet,
-      ],
-    },
-  ],
-  {
-    appName: 'MoltSpin Roulette',
-    projectId,
-  }
-);
-
-// Create wagmi config
+// Create wagmi config with simple connectors
 const config = createConfig({
-  connectors,
   chains: [base],
+  connectors: [
+    injected(),
+    coinbaseWallet({ appName: 'MoltSpin Roulette' }),
+  ],
   transports: {
     [base.id]: http('https://mainnet.base.org'),
   },
@@ -48,25 +22,11 @@ const config = createConfig({
 // Create query client
 const queryClient = new QueryClient();
 
-// Custom theme matching MoltSpin arcade style
-const moltSpinTheme = darkTheme({
-  accentColor: '#FF6B00',
-  accentColorForeground: 'white',
-  borderRadius: 'medium',
-  fontStack: 'system',
-  overlayBlur: 'small',
-});
-
 export default function Web3Provider({ children }: { children: ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider 
-          theme={moltSpinTheme}
-          modalSize="compact"
-        >
-          {children}
-        </RainbowKitProvider>
+        {children}
       </QueryClientProvider>
     </WagmiProvider>
   );

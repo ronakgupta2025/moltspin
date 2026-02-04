@@ -1,107 +1,104 @@
 'use client';
 
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } from 'wagmi';
+import { base } from 'wagmi/chains';
+import { Wallet, LogOut, AlertTriangle } from 'lucide-react';
+import { useState } from 'react';
 
 export default function ConnectWallet() {
-  return (
-    <ConnectButton.Custom>
-      {({
-        account,
-        chain,
-        openAccountModal,
-        openChainModal,
-        openConnectModal,
-        authenticationStatus,
-        mounted,
-      }) => {
-        const ready = mounted && authenticationStatus !== 'loading';
-        const connected =
-          ready &&
-          account &&
-          chain &&
-          (!authenticationStatus || authenticationStatus === 'authenticated');
+  const { address, isConnected } = useAccount();
+  const { connect, connectors, isPending } = useConnect();
+  const { disconnect } = useDisconnect();
+  const chainId = useChainId();
+  const { switchChain } = useSwitchChain();
+  const [showModal, setShowModal] = useState(false);
 
-        return (
-          <div
-            {...(!ready && {
-              'aria-hidden': true,
-              style: {
-                opacity: 0,
-                pointerEvents: 'none',
-                userSelect: 'none',
-              },
-            })}
-          >
-            {(() => {
-              if (!connected) {
-                return (
-                  <button
-                    onClick={openConnectModal}
-                    className="btn-primary px-6 py-3 font-display uppercase tracking-wider"
-                  >
-                    Connect Wallet
-                  </button>
-                );
-              }
+  const isWrongNetwork = isConnected && chainId !== base.id;
 
-              if (chain.unsupported) {
-                return (
-                  <button
-                    onClick={openChainModal}
-                    className="btn-secondary px-6 py-3 font-display uppercase tracking-wider bg-casino-red"
-                  >
-                    Wrong Network
-                  </button>
-                );
-              }
+  const shortenAddress = (addr: string) => {
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
 
-              return (
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={openChainModal}
-                    className="flex items-center gap-2 px-3 py-2 bg-surface/50 border border-molt-orange/30 rounded-lg hover:border-molt-orange/50 transition-colors"
-                  >
-                    {chain.hasIcon && (
-                      <div
-                        style={{
-                          background: chain.iconBackground,
-                          width: 20,
-                          height: 20,
-                          borderRadius: 999,
-                          overflow: 'hidden',
-                        }}
-                      >
-                        {chain.iconUrl && (
-                          <img
-                            alt={chain.name ?? 'Chain icon'}
-                            src={chain.iconUrl}
-                            style={{ width: 20, height: 20 }}
-                          />
-                        )}
-                      </div>
-                    )}
-                    <span className="text-sm font-display">{chain.name}</span>
-                  </button>
+  if (!isConnected) {
+    return (
+      <>
+        <button
+          onClick={() => setShowModal(true)}
+          disabled={isPending}
+          className="btn-primary px-6 py-3 font-display uppercase tracking-wider flex items-center gap-2"
+        >
+          <Wallet className="w-4 h-4" />
+          {isPending ? 'Connecting...' : 'Connect Wallet'}
+        </button>
 
+        {/* Connect Modal */}
+        {showModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div 
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              onClick={() => setShowModal(false)}
+            />
+            <div className="relative glass border-2 border-molt-orange/50 rounded-2xl p-6 max-w-sm w-full">
+              <h3 className="text-xl font-display font-bold text-molt-orange mb-4 text-center">
+                Connect Wallet
+              </h3>
+              <div className="space-y-3">
+                {connectors.map((connector) => (
                   <button
-                    onClick={openAccountModal}
-                    className="flex items-center gap-2 px-4 py-2 bg-molt-orange/20 border border-molt-orange rounded-lg hover:bg-molt-orange/30 transition-colors"
+                    key={connector.uid}
+                    onClick={() => {
+                      connect({ connector });
+                      setShowModal(false);
+                    }}
+                    className="w-full p-4 bg-surface/50 border border-molt-orange/30 rounded-lg hover:bg-molt-orange/20 transition-colors flex items-center gap-3"
                   >
-                    <span className="font-display text-molt-orange">
-                      {account.displayName}
-                    </span>
-                    {account.displayBalance && (
-                      <span className="text-sm text-gray-400">
-                        ({account.displayBalance})
-                      </span>
-                    )}
+                    <Wallet className="w-5 h-5 text-molt-orange" />
+                    <span className="font-display">{connector.name}</span>
                   </button>
-                </div>
-              );
-            })()}
+                ))}
+              </div>
+              <button
+                onClick={() => setShowModal(false)}
+                className="mt-4 w-full p-2 text-gray-400 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
-        );
-      }}
-    </ConnectButton.Custom>
+        )}
+      </>
+    );
+  }
+
+  if (isWrongNetwork) {
+    return (
+      <button
+        onClick={() => switchChain({ chainId: base.id })}
+        className="btn-secondary px-4 py-2 bg-casino-red border-casino-red flex items-center gap-2"
+      >
+        <AlertTriangle className="w-4 h-4" />
+        Switch to Base
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className="px-4 py-2 bg-surface/50 border border-molt-orange/30 rounded-lg">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+          <span className="font-display text-molt-orange">
+            {shortenAddress(address!)}
+          </span>
+        </div>
+      </div>
+      <button
+        onClick={() => disconnect()}
+        className="p-2 text-gray-400 hover:text-casino-red transition-colors"
+        title="Disconnect"
+      >
+        <LogOut className="w-5 h-5" />
+      </button>
+    </div>
   );
 }
