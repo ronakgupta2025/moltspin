@@ -1,0 +1,30 @@
+{
+  "network": "base",
+  "contracts": {
+    "usdc": "0x833589fCD6eDb6E08f4c7c32D4f71b54bdA02913",
+    "vrfCoordinator": "0xd5D517aBE5cF79B7e95eC98dB0f0277788aFF634",
+    "subscriptionId": "YOUR_CHAINLINK_SUBSCRIPTION_ID",
+    "keyHash": "0x8596b430971ac45bdf6088665b9ad8e8630c9d5049ab54b14dff711bee7c0e26"
+  },
+  "minBets": {
+    "straight": "1000000",
+    "evenMoney": "5000000",
+    "dozen": "2000000"
+  },
+  "maxBet": "1000000000",
+  "maxBetsPerBatch": 10,
+  "deployment": {
+    "rpcUrl": "https://mainnet.base.org",
+    "chainId": 8453,
+    "gasLimit": "auto",
+    "confirmations": 3
+  },
+  "notes": {
+    "usdc": "USDC on Base with 6 decimals",
+    "vrfCoordinator": "Chainlink VRF Coordinator V2 on Base",
+    "keyHash": "500 gwei Key Hash for Base",
+    "minBetStraight": "1 USDC for straight bets",
+    "minBetEvenMoney": "5 USDC for red/black/odd/even/high/low",
+    "minBetDozen": "2 USDC for dozens/columns"
+  }
+}

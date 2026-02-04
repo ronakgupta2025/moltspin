@@ -21,3 +21,10 @@ lib/
 
 # Deployment output
 CONTRACT_ADDRESS.txt
+
+# Documentation and scripts (per user request)
+*.md
+*.sh
+
+# Node modules for Chainlink
+node_modules/

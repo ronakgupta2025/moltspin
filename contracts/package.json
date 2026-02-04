@@ -1,0 +1,9 @@
+{
+  "name": "moltspin-contracts",
+  "version": "2.0.0",
+  "description": "MoltSpin Roulette Smart Contracts with Chainlink VRF",
+  "private": true,
+  "dependencies": {
+    "@chainlink/contracts": "^1.1.1"
+  }
+}

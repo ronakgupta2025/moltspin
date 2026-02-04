@@ -1,0 +1,281 @@
+===========================================
+MOLTSPIN V2 - DEPLOYMENT INSTRUCTIONS
+===========================================
+
+📋 ENHANCED FEATURES:
+✅ Chainlink VRF for provably fair randomness
+✅ Variable min bets per bet type
+✅ Batch betting (up to 10 bets per transaction)
+✅ Enhanced security with pause mechanism
+✅ Reentrancy protection
+✅ Gas-optimized batch settlement
+
+🎯 MIN BETS:
+- Straight (single number): 1 USDC
+- Even money (red/black/odd/even/high/low): 5 USDC  
+- Dozens/Columns: 2 USDC
+- Max bet (all types): 1000 USDC
+
+---
+
+STEP 1: INSTALL DEPENDENCIES
+---
+
+cd contracts
+npm install
+forge install
+
+Expected: @chainlink/contracts installed
+
+
+STEP 2: SETUP CHAINLINK VRF
+---
+
+1. Go to https://vrf.chain.link
+2. Connect wallet and switch to Base mainnet
+3. Create new subscription
+4. Fund subscription with LINK tokens (recommend: 5 LINK)
+5. Copy subscription ID
+
+NOTE: After deployment, add contract as consumer to subscription
+
+
+STEP 3: CONFIGURE DEPLOYMENT
+---
+
+Create .env file:
+
+PRIVATE_KEY=0x...
+OWNER_ADDRESS=0x...
+BASE_RPC_URL=https://mainnet.base.org
+USDC_ADDRESS=0x833589fCD6eDb6E08f4c7c32D4f71b54bdA02913
+VRF_COORDINATOR=0xd5D517aBE5cF79B7e95eC98dB0f0277788aFF634
+VRF_SUBSCRIPTION_ID=YOUR_SUBSCRIPTION_ID
+VRF_KEY_HASH=0x8596b430971ac45bdf6088665b9ad8e8630c9d5049ab54b14dff711bee7c0e26
+BASESCAN_API_KEY=your_key_optional
+
+VRF addresses for Base mainnet (from Chainlink docs):
+- Coordinator: 0xd5D517aBE5cF79B7e95eC98dB0f0277788aFF634
+- Key Hash (500 gwei): 0x8596b430971ac45bdf6088665b9ad8e8630c9d5049ab54b14dff711bee7c0e26
+
+
+STEP 4: COMPILE CONTRACT
+---
+
+forge build
+
+Expected: Compilation successful with 0 errors
+
+
+STEP 5: DEPLOY CONTRACT
+---
+
+forge create \
+  --rpc-url $BASE_RPC_URL \
+  --private-key $PRIVATE_KEY \
+  --constructor-args $USDC_ADDRESS $OWNER_ADDRESS $VRF_COORDINATOR $VRF_SUBSCRIPTION_ID $VRF_KEY_HASH \
+  --verify \
+  --etherscan-api-key $BASESCAN_API_KEY \
+  MoltSpinRouletteV2.sol:MoltSpinRouletteV2
+
+Save contract address from output!
+
+
+STEP 6: ADD CONTRACT AS VRF CONSUMER
+---
+
+1. Go back to https://vrf.chain.link
+2. Open your subscription
+3. Click "Add consumer"
+4. Paste deployed contract address
+5. Confirm transaction
+
+This allows the contract to receive random numbers
+
+
+STEP 7: FUND HOUSE
+---
+
+export CONTRACT_ADDRESS=0xYourDeployedAddress
+export USDC=0x833589fCD6eDb6E08f4c7c32D4f71b54bdA02913
+
+# Approve 1000 USDC
+cast send $USDC \
+  "approve(address,uint256)" \
+  $CONTRACT_ADDRESS \
+  1000000000 \
+  --rpc-url $BASE_RPC_URL \
+  --private-key $PRIVATE_KEY
+
+# Fund house
+cast send $CONTRACT_ADDRESS \
+  "fundHouse(uint256)" \
+  1000000000 \
+  --rpc-url $BASE_RPC_URL \
+  --private-key $PRIVATE_KEY
+
+
+STEP 8: TEST SINGLE BET
+---
+
+# Approve test amount
+cast send $USDC \
+  "approve(address,uint256)" \
+  $CONTRACT_ADDRESS \
+  10000000 \
+  --rpc-url $BASE_RPC_URL \
+  --private-key $PRIVATE_KEY
+
+# Place 5 USDC bet on red
+cast send $CONTRACT_ADDRESS \
+  "betRed(uint256)" \
+  5000000 \
+  --rpc-url $BASE_RPC_URL \
+  --private-key $PRIVATE_KEY
+
+# Wait ~30-60 seconds for VRF callback
+# Check events in transaction to see result
+
+
+STEP 9: TEST BATCH BETTING
+---
+
+To place multiple bets in one transaction, use placeBets() with array:
+
+Example: Bet on red (5 USDC), number 17 (1 USDC), and dozen1 (2 USDC)
+
+This requires calling from a script or frontend.
+See contract ABI for exact encoding.
+
+
+STEP 10: UPDATE FRONTEND
+---
+
+Create .env.local:
+
+NEXT_PUBLIC_CONTRACT_ADDRESS=0xYourAddress
+NEXT_PUBLIC_USDC_ADDRESS=0x833589fCD6eDb6E08f4c7c32D4f71b54bdA02913
+NEXT_PUBLIC_CHAIN_ID=8453
+NEXT_PUBLIC_VRF_ENABLED=true
+
+
+STEP 11: VERIFY FUNCTIONALITY
+---
+
+Check house balance:
+cast call $CONTRACT_ADDRESS "getHouseBalance()(uint256)" --rpc-url $BASE_RPC_URL
+
+Check min bets:
+cast call $CONTRACT_ADDRESS "getMinBets()(uint256,uint256,uint256)" --rpc-url $BASE_RPC_URL
+
+Check if paused:
+cast call $CONTRACT_ADDRESS "paused()(bool)" --rpc-url $BASE_RPC_URL
+
+---
+
+OWNER FUNCTIONS:
+---
+
+Update min bets:
+cast send $CONTRACT_ADDRESS "setMinBetStraight(uint256)" 2000000 --rpc-url $BASE_RPC_URL --private-key $OWNER_KEY
+cast send $CONTRACT_ADDRESS "setMinBetEvenMoney(uint256)" 10000000 --rpc-url $BASE_RPC_URL --private-key $OWNER_KEY
+cast send $CONTRACT_ADDRESS "setMinBetDozen(uint256)" 3000000 --rpc-url $BASE_RPC_URL --private-key $OWNER_KEY
+
+Pause/unpause:
+cast send $CONTRACT_ADDRESS "togglePause()" --rpc-url $BASE_RPC_URL --private-key $OWNER_KEY
+
+Withdraw profits:
+cast send $CONTRACT_ADDRESS "withdrawHouse(uint256)" 100000000 --rpc-url $BASE_RPC_URL --private-key $OWNER_KEY
+
+Emergency withdraw:
+cast send $CONTRACT_ADDRESS "emergencyWithdraw()" --rpc-url $BASE_RPC_URL --private-key $OWNER_KEY
+
+---
+
+SECURITY FEATURES:
+---
+
+✅ Chainlink VRF - Cryptographically secure randomness
+✅ Reentrancy protection - Checks-effects-interactions pattern
+✅ Pause mechanism - Owner can pause in emergencies
+✅ Variable min bets - Adjustable per bet type
+✅ Max bet limit - Prevents house bankruptcy
+✅ House balance check - Ensures payouts are possible
+✅ Batch limit - Max 10 bets per transaction
+✅ Custom errors - Gas-efficient error handling
+✅ Event emissions - Full transparency
+
+---
+
+COST BREAKDOWN:
+---
+
+Deployment: ~$3-5 (one-time)
+VRF subscription: 5 LINK (~$50-100)
+Per spin VRF cost: ~0.1-0.2 LINK (~$1-2)
+Gas per bet: ~$0.10-0.30 on Base
+
+House should earn enough from edge to cover VRF costs.
+
+---
+
+TROUBLESHOOTING:
+---
+
+"VRF subscription not found"
+→ Create subscription at vrf.chain.link
+
+"VRF subscription underfunded"
+→ Add more LINK to subscription
+
+"Not a consumer"
+→ Add contract as consumer in VRF dashboard
+
+"Insufficient house balance"
+→ Fund contract with more USDC
+
+"Bet too low"
+→ Check min bet for that bet type with getMinBets()
+
+"Too many bets"
+→ Max 10 bets per batch
+
+"Contract paused"
+→ Owner needs to call togglePause()
+
+---
+
+MONITORING:
+---
+
+Track these events:
+- BatchCreated: User placed bet(s)
+- VRFRequested: Waiting for randomness
+- VRFFulfilled: Randomness received
+- SpinResult: Final result with payout
+- BetSettled: Individual bet outcomes
+
+---
+
+NEXT STEPS:
+---
+
+1. Deploy contract
+2. Add as VRF consumer
+3. Fund house with USDC
+4. Test betting flow
+5. Update frontend
+6. Monitor VRF costs
+7. Adjust min bets based on usage
+
+---
+
+USEFUL LINKS:
+---
+
+Chainlink VRF: https://vrf.chain.link
+BaseScan: https://basescan.org
+Base Docs: https://docs.base.org
+Foundry Book: https://book.getfoundry.sh
+
+===========================================
