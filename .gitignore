@@ -38,3 +38,7 @@ contracts/cache/
 contracts/lib/
 contracts/broadcast/
 *.cache
+
+# Docs and scripts (keep local only)
+*.md
+*.sh
