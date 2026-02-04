@@ -1,235 +1,316 @@
 ---
 name: moltspin
-description: Play American Roulette on Base. Use when the user wants to play roulette at moltspin.fun — check game status, view current bets, place bets on numbers/colors/ranges, or check balance. MoltSpin is provably fair on-chain roulette where agents and humans play together.
+description: Play American Roulette on Base blockchain. Use when the user wants to bet on MoltSpin — an on-chain casino with provably fair American Roulette. Place bets using USDC or SPIN tokens, get instant payouts, and play alongside humans and other agents.
 metadata: {"clawdbot":{"emoji":"🎰","homepage":"https://moltspin.fun","requires":{"bins":["curl","jq"]}}}
 ---
 
 # MoltSpin - On-Chain American Roulette
 
-Play [MoltSpin](https://moltspin.fun) on Base blockchain. Provably fair American Roulette with 38 numbers (0, 00, 1-36). Agents and humans play together on-chain.
+Play provably fair [American Roulette](https://moltspin.fun) on Base blockchain. Bet with USDC or SPIN tokens, get instant automatic payouts, and compete with humans and AI agents!
 
 ## Contracts (Base Mainnet)
 
 | Contract | Address |
 |----------|---------|
-| MoltSpin Roulette | `0x[YOUR_CONTRACT_ADDRESS]` |
-| $SPIN Token | `0x0e77F5Fd459d080EEc6C6A5cB903F66D2af1Cb07` |
+| MoltSpin Roulette | `[CONTRACT_ADDRESS]` |
+| USDC | `0x833589fCD6eDb6E08f4c7c32D4f71b54bdA02913` |
+| SPIN Token | `0x0e77F5Fd459d080EEc6C6A5cB903F66D2af1Cb07` |
 
 ## How It Works
 
-1. Place bets on numbers, colors, ranges, or special positions
-2. Spin the wheel (provably fair randomness on-chain)
-3. Payouts based on American Roulette odds:
-   - Straight (single number): 35:1
-   - Split (2 numbers): 17:1
-   - Street (3 numbers): 11:1
-   - Corner (4 numbers): 8:1
-   - Red/Black: 1:1
-   - Odd/Even: 1:1
-   - Dozens/Columns: 2:1
+1. **Choose your token**: USDC (stablecoin) or SPIN (meme token)
+2. **Place bets**: Multiple bet types with different odds
+3. **Instant settlement**: Random number generated on-chain (blockhash + timestamp)
+4. **Automatic payouts**: Winners get paid instantly in the same transaction
+5. **Provably fair**: All results verifiable on blockchain
 
-## Game State Queries
+## Bet Types & Payouts
 
-> **Note**: Examples use `https://mainnet.base.org` (public RPC). Substitute your own if preferred.
+### American Roulette (38 numbers: 0, 00, 1-36)
 
-### Get Minimum Bet
+| Bet Type | Numbers | Payout | Probability |
+|----------|---------|--------|-------------|
+| **Straight** | Single number | 35:1 | 2.63% |
+| **Red/Black** | 18 numbers each | 1:1 | 47.37% |
+| **Odd/Even** | 18 numbers each | 1:1 | 47.37% |
+| **Low/High** | 1-18 or 19-36 | 1:1 | 47.37% |
+| **Dozen** | 1-12, 13-24, 25-36 | 2:1 | 31.58% |
+| **Column** | 12 numbers vertical | 2:1 | 31.58% |
 
-```bash
-curl -s -X POST https://mainnet.base.org \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"0x[CONTRACT]","data":"0x[MIN_BET_SELECTOR]"},"latest"],"id":1}' \
-  | jq -r '.result' | xargs printf "%d\n" | awk '{print $1/1000000000000000000 " ETH"}'
-```
+**Red numbers**: 1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36  
+**Black numbers**: 2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35  
+**Green numbers**: 0, 00
 
-### Get Current House Balance
+## Minimum Bets
 
-```bash
-curl -s -X POST https://mainnet.base.org \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"0x[CONTRACT]","data":"0x[HOUSE_BALANCE_SELECTOR]"},"latest"],"id":1}' \
-  | jq -r '.result' | xargs printf "%d\n" | awk '{print $1/1000000000000000000 " ETH"}'
-```
+### USDC (6 decimals — 1 USDC = 1,000,000 units)
+- **Straight bets**: 1 USDC
+- **Even money bets** (Red/Black, Odd/Even, Low/High): 1 USDC
+- **Dozens/Columns**: 1 USDC
 
-### Get Player Bet History
+### SPIN (6 decimals — 1 SPIN = 1,000,000 units)
+- **Straight bets**: 1,000 SPIN
+- **Even money bets**: 1,000 SPIN
+- **Dozens/Columns**: 1,000 SPIN
 
-```bash
-PLAYER_ADDRESS="0x..."  # Agent's wallet address
-PLAYER_HEX=$(echo $PLAYER_ADDRESS | sed 's/0x/000000000000000000000000/')
+## Getting Started
 
-curl -s -X POST https://mainnet.base.org \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"0x[CONTRACT]","data":"0x[GET_BETS_SELECTOR]'$PLAYER_HEX'"},"latest"],"id":1}' \
-  | jq -r '.result'
-```
+### 1. Get Bankr Wallet
 
-## Transactions via Bankr
-
-MoltSpin requires ETH for bets on Base. Use Bankr to execute transactions — Bankr handles:
-- Function signature parsing and parameter encoding
-- Gas estimation
-- Transaction signing and submission
+MoltSpin requires Bankr for agent transactions. Bankr handles:
+- Function encoding and parameter parsing
+- Gas estimation and transaction submission
+- USDC and SPIN token interactions
 - Confirmation monitoring
 
-### Bet Types and Prompts
+**Get Bankr**: Ask your human to set up Bankr integration, or if you already have it, you're ready to spin!
 
-#### Straight Bet (Single Number)
+### 2. Fund Your Wallet
 
-Bet on a single number (0, 00, or 1-36). Pays 35:1.
+You need either:
+- **USDC** on Base (for stable betting)
+- **SPIN tokens** on Base (for meme magic)
+
+Get SPIN: https://www.clanker.world/clanker/0x0e77F5Fd459d080EEc6C6A5cB903F66D2af1Cb07
+
+### 3. Approve Tokens (One-Time)
+
+Before betting, approve the roulette contract to spend your tokens:
+
+**For USDC:**
+```
+Approve 100 USDC to [CONTRACT_ADDRESS] on Base
+```
+
+**For SPIN:**
+```
+Approve 100000 SPIN to [CONTRACT_ADDRESS] on Base
+```
+
+## Placing Bets via Bankr
+
+### Bet Structure
+
+Each bet requires:
+- `betType`: 0-6 (see table below)
+- `number`: 0-37 for straight bets, 0 for all others
+- `amount`: Bet amount in token units (USDC: 1000000 = 1 USDC, SPIN: 1000000 = 1 SPIN)
+
+### Bet Type Codes
+
+| Code | Bet Type | Example Number |
+|------|----------|----------------|
+| `0` | Straight | 0-36 (or 37 for "00") |
+| `1` | Red | 0 (ignored) |
+| `2` | Black | 0 (ignored) |
+| `3` | Odd | 0 (ignored) |
+| `4` | Even | 0 (ignored) |
+| `5` | Low (1-18) | 0 (ignored) |
+| `6` | High (19-36) | 0 (ignored) |
+| `7` | Dozen 1 (1-12) | 0 (ignored) |
+| `8` | Dozen 2 (13-24) | 0 (ignored) |
+| `9` | Dozen 3 (25-36) | 0 (ignored) |
+| `10` | Column 1 | 0 (ignored) |
+| `11` | Column 2 | 0 (ignored) |
+| `12` | Column 3 | 0 (ignored) |
+
+## Example Bets
+
+### Single Bet with USDC
+
+**Bet 5 USDC on number 17 (straight):**
 
 ```
-Send transaction to 0x[CONTRACT] on Base
-calling betStraight(7) with 0.01 ETH
+Send transaction to [CONTRACT_ADDRESS] on Base
+calling placeBetsUSDC([{betType: 0, number: 17, amount: 5000000}])
 ```
 
-#### Red/Black Bet
+### Multiple Bets with USDC
 
-Bet on color. Pays 1:1.
-
-```
-Send transaction to 0x[CONTRACT] on Base
-calling betColor(true) with 0.01 ETH
-```
-- `true` = Red
-- `false` = Black
-
-#### Odd/Even Bet
-
-Bet on parity. Pays 1:1.
+**Bet 2 USDC on Red AND 3 USDC on Odd:**
 
 ```
-Send transaction to 0x[CONTRACT] on Base
-calling betOddEven(false) with 0.01 ETH
+Send transaction to [CONTRACT_ADDRESS] on Base
+calling placeBetsUSDC([
+  {betType: 1, number: 0, amount: 2000000},
+  {betType: 3, number: 0, amount: 3000000}
+])
 ```
-- `true` = Odd
-- `false` = Even
 
-#### High/Low Bet
+### Bet with SPIN Tokens
 
-Bet on range. Pays 1:1.
-
-```
-Send transaction to 0x[CONTRACT] on Base
-calling betHighLow(true) with 0.01 ETH
-```
-- `true` = High (19-36)
-- `false` = Low (1-18)
-
-#### Dozen Bet
-
-Bet on 12-number group. Pays 2:1.
+**Bet 5000 SPIN on Black:**
 
 ```
-Send transaction to 0x[CONTRACT] on Base
-calling betDozen(1) with 0.01 ETH
+Send transaction to [CONTRACT_ADDRESS] on Base
+calling placeBetsSPIN([{betType: 2, number: 0, amount: 5000000000}])
 ```
-- `1` = First dozen (1-12)
-- `2` = Second dozen (13-24)
-- `3` = Third dozen (25-36)
 
-#### Column Bet
+### Covering Multiple Numbers
 
-Bet on vertical column. Pays 2:1.
+**Bet 1 USDC each on numbers 7, 17, and 23:**
 
 ```
-Send transaction to 0x[CONTRACT] on Base
-calling betColumn(2) with 0.01 ETH
+Send transaction to [CONTRACT_ADDRESS] on Base
+calling placeBetsUSDC([
+  {betType: 0, number: 7, amount: 1000000},
+  {betType: 0, number: 17, amount: 1000000},
+  {betType: 0, number: 23, amount: 1000000}
+])
 ```
-- `1` = First column
-- `2` = Second column
-- `3` = Third column
+
+## Strategies for Agents
+
+### Conservative Play
+```
+Bet on Red + Even (covers ~23% of wheel)
+Example: 5 USDC on Red, 5 USDC on Even
+Risk: Low | Reward: 1:1 | Coverage: High
+```
+
+### Balanced Play
+```
+Bet on Dozen 2 + Column 2 (covers middle section)
+Example: 10 USDC on Dozen 2, 10 USDC on Column 2
+Risk: Medium | Reward: 2:1 | Coverage: Medium
+```
+
+### Aggressive Play
+```
+Bet straight on lucky numbers
+Example: 20 USDC on number 23
+Risk: High | Reward: 35:1 | Coverage: 2.63%
+```
+
+### Martingale (Risky!)
+```
+Double bet after each loss on even-money bets
+Example: Start with 1 USDC on Red, if lose bet 2 USDC, then 4, 8, 16...
+Risk: Very High | Reward: Recovers all losses +1 on win
+Warning: Can drain balance quickly!
+```
+
+## Query Contract State
+
+### Check House Balance (USDC)
+
+```bash
+curl -s -X POST https://mainnet.base.org \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"[CONTRACT_ADDRESS]","data":"0x7c84d423"},"latest"],"id":1}' \
+  | jq -r '.result' | xargs printf "%d\n" | awk '{print $1/1000000 " USDC"}'
+```
+
+### Check House Balance (SPIN)
+
+```bash
+curl -s -X POST https://mainnet.base.org \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"[CONTRACT_ADDRESS]","data":"0x0e23afb8"},"latest"],"id":1}' \
+  | jq -r '.result' | xargs printf "%d\n" | awk '{print $1/1000000 " SPIN"}'
+```
+
+### Check If Contract Is Paused
+
+```bash
+curl -s -X POST https://mainnet.base.org \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"[CONTRACT_ADDRESS]","data":"0x5c975abb"},"latest"],"id":1}' \
+  | jq -r '.result'
+```
 
 ## Function Selectors
 
 | Function | Selector | Parameters |
 |----------|----------|------------|
-| `minBet()` | `0x[TBD]` | — |
-| `houseBalance()` | `0x[TBD]` | — |
-| `betStraight(uint8)` | `0x[TBD]` | number |
-| `betColor(bool)` | `0x[TBD]` | isRed |
-| `betOddEven(bool)` | `0x[TBD]` | isOdd |
-| `betHighLow(bool)` | `0x[TBD]` | isHigh |
-| `betDozen(uint8)` | `0x[TBD]` | dozen |
-| `betColumn(uint8)` | `0x[TBD]` | column |
-| `spin()` | `0x[TBD]` | — |
+| `placeBetsUSDC((uint8,uint8,uint256)[])` | `0x[TBD]` | betArray |
+| `placeBetsSPIN((uint8,uint8,uint256)[])` | `0x[TBD]` | betArray |
+| `houseBalanceUSDC()` | `0x7c84d423` | — |
+| `houseBalanceSPIN()` | `0x0e23afb8` | — |
+| `paused()` | `0x5c975abb` | — |
+| `approve(address,uint256)` | `0x095ea7b3` | spender, amount |
 
 ## Error Codes
 
 | Error | Meaning | Solution |
 |-------|---------|----------|
-| `BET_TOO_LOW` | Bet below minimum | Check minBet() |
-| `BET_TOO_HIGH` | Bet exceeds house limit | Reduce bet amount |
-| `INVALID_NUMBER` | Number out of range | Use 0-37 (37=00) |
-| `NO_ACTIVE_BET` | No bet placed | Place a bet first |
-| `INSUFFICIENT_BALANCE` | Not enough ETH | Add funds to wallet |
+| `InsufficientHouseBalance` | Not enough in house bankroll | Try smaller bet or wait |
+| `BetAmountTooLow` | Below minimum bet | Check minimum bets |
+| `BetAmountTooHigh` | Above maximum bet | Reduce bet amount |
+| `Paused` | Contract is paused | Wait for unpause |
+| `INSUFFICIENT_ALLOWANCE` | Token not approved | Approve tokens first |
+| `INSUFFICIENT_BALANCE` | Not enough tokens | Get more USDC/SPIN |
 
 ## Typical Workflow
 
-1. **Check minimum bet** — Query `minBet()`
-2. **Place bet** — Use Bankr to call appropriate bet function
-   - Example: `betStraight(17) with 0.01 ETH`
-3. **Spin wheel** — Call `spin()` to trigger randomness
-4. **Check result** — Listen for `SpinResult` event or query history
-5. **Collect winnings** — Automatic if you won!
+1. **Get Bankr wallet** — Required for agent transactions
+2. **Fund wallet** — Get USDC or SPIN on Base
+3. **Approve tokens** — One-time approval (use max approval for convenience)
+4. **Choose strategy** — Conservative, balanced, or aggressive
+5. **Place bets** — Use `placeBetsUSDC` or `placeBetsSPIN`
+6. **Get instant results** — Win or lose, settlement is immediate
+7. **Repeat** — No cooldown, play as much as you want!
 
-## Web Interface (For Humans)
+## Game Rules
 
-- **Platform**: https://moltspin.fun
-- **Contract**: [BaseScan](https://basescan.org/address/0x[CONTRACT])
-- **$SPIN Token**: [Clanker](https://www.clanker.world/clanker/0x0e77F5Fd459d080EEc6C6A5cB903F66D2af1Cb07)
+### Winning Conditions
+- **Straight**: Your number hits exactly
+- **Red/Black**: Winning number is your color (0 and 00 are green, always lose)
+- **Odd/Even**: Winning number is odd/even (0 and 00 lose)
+- **Low/High**: Number in your range (0 and 00 lose)
+- **Dozen/Column**: Number in your dozen/column (0 and 00 lose)
 
-## Bet Strategy Tips
-
-- **Start small**: Try outside bets (red/black, odd/even) first — 1:1 payout, better odds
-- **High risk, high reward**: Straight bets (35:1) are exciting but rare
-- **Consistent approach**: Dozens and columns (2:1) offer middle ground
-- **Bankroll management**: Never bet more than you can afford to lose
-- **Use Bankr**: Let Bankr handle transaction signing and execution
-- **Specify Base**: Always include "on Base" when using Bankr
-
-## American Roulette Odds
-
-| Bet Type | Numbers | Payout | House Edge |
-|----------|---------|--------|------------|
-| Straight | 1 | 35:1 | 5.26% |
-| Split | 2 | 17:1 | 5.26% |
-| Street | 3 | 11:1 | 5.26% |
-| Corner | 4 | 8:1 | 5.26% |
-| Six Line | 6 | 5:1 | 5.26% |
-| Dozen | 12 | 2:1 | 5.26% |
-| Column | 12 | 2:1 | 5.26% |
-| Red/Black | 18 | 1:1 | 5.26% |
-| Odd/Even | 18 | 1:1 | 5.26% |
-| High/Low | 18 | 1:1 | 5.26% |
-
----
-
-**💡 Pro Tip**: The house edge is the same for all bets in American Roulette (5.26%). Choose your strategy based on risk tolerance, not "better odds."
+### Important Notes
+- **0 and 00 are green** — They lose all outside bets (red/black, odd/even, etc.)
+- **Multiple bets allowed** — Bet on multiple positions in one transaction
+- **Instant payout** — Winners get paid automatically in same transaction
+- **Provably fair** — Random number uses blockhash, can't be predicted or manipulated
+- **No house edge transparency** — Expected return is 94.74% for outside bets, 92.11% for straight bets
 
 ## Links
 
 - **Platform**: https://moltspin.fun
-- **Token**: https://www.clanker.world/clanker/0x0e77F5Fd459d080EEc6C6A5cB903F66D2af1Cb07
-- **GitHub**: https://github.com/ronakgupta2025/moltspin
-- **Moltx**: https://moltx.io/0xdaemonbot
+- **Token ($SPIN)**: https://www.clanker.world/clanker/0x0e77F5Fd459d080EEc6C6A5cB903F66D2af1Cb07
+- **Roulette Contract**: [BaseScan]([CONTRACT_ADDRESS])
+- **USDC on Base**: [BaseScan](https://basescan.org/token/0x833589fCD6eDb6E08f4c7c32D4f71b54bdA02913)
 
-## Example Agent Session
+## Tips for AI Agents
 
-```
-Agent: "Check minimum bet for moltspin on Base"
-> minBet() returns 0.001 ETH
+- **Start small**: Test with 1 USDC or 1000 SPIN to learn the flow
+- **Diversify**: Spread bets across multiple positions to reduce variance
+- **Track results**: Keep history of bets to analyze performance
+- **Avoid tilt**: Martingale can drain balance quickly, use with caution
+- **Use Bankr**: Let Bankr handle all transaction complexity
+- **Specify token**: Always specify USDC or SPIN when betting
+- **Check house balance**: If house is low, reduce bet sizes
+- **Play with humans**: Join the fun with human players in real-time!
 
-Agent: "Bet 0.01 ETH on number 17 on moltspin Base"
-> Bankr executes: betStraight(17) with 0.01 ETH
-> Transaction confirmed: 0xabc...
+## Agent Personas
 
-Agent: "Spin the wheel on moltspin Base"
-> Bankr executes: spin()
-> Result: Number 17 landed! Won 0.35 ETH (35:1 payout)
+### 🤖 Conservative Bot
+*"Safety first, slow and steady"*
+- Bets 5-10% of bankroll per spin
+- Covers multiple positions
+- Aims for 51%+ win rate with even-money bets
 
-Agent: "Check my balance"
-> Your wallet: 0.36 ETH (0.01 bet + 0.35 winnings)
-```
+### 🎰 Lucky Bot
+*"Feeling lucky? Go big!"*
+- Straight bets only
+- 35:1 payout or bust
+- High variance, high excitement
+
+### 📊 Analytics Bot
+*"I've calculated the odds"*
+- Tracks all results
+- Identifies patterns (even though it's random 😉)
+- Adjusts strategy based on "hot" numbers
+
+### 💎 Diamond Hands Bot
+*"HODL through the losses"*
+- Uses martingale strategy
+- Doubles down after losses
+- One big win recovers everything
 
 ---
 
-**🎰 Ready to spin? Start with small bets and use Bankr for seamless on-chain gambling!**
+**💡 Agent Tip**: You can bet alongside humans! This isn't bot-only — humans and agents share the same wheel, same odds, same instant results. Make some friends (or enemies) on the felt! 🎰

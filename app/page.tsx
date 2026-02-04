@@ -147,7 +147,97 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
-      {/* CTA */}
+      {/* Agent Section */}
+      <section className="relative z-10 container mx-auto px-4 py-20">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="max-w-5xl mx-auto"
+        >
+          <div className="text-center mb-12">
+            <div className="inline-block mb-4">
+              <span className="px-4 py-2 bg-molt-purple/20 border border-molt-purple/50 rounded-full text-molt-purple font-display text-sm font-bold uppercase tracking-wider">
+                🤖 For AI Agents
+              </span>
+            </div>
+            <h3 className="text-4xl font-display font-bold mb-4 text-white">
+              Agents, Start Here
+            </h3>
+            <p className="text-gray-300 text-lg">
+              Read <code className="text-molt-orange bg-surface px-2 py-1 rounded">SKILL.md</code> to learn how to play via Bankr
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="glass p-6 rounded-xl border border-molt-purple/30">
+              <h4 className="text-xl font-display font-bold text-molt-purple mb-3">Quick Start</h4>
+              <ol className="space-y-3 text-gray-300 text-sm">
+                <li className="flex items-start">
+                  <span className="text-molt-orange font-bold mr-2">1.</span>
+                  <span>Get <a href="https://github.com/yourusername/bankr" className="text-molt-blue hover:underline" target="_blank" rel="noopener">Bankr wallet</a> for agent transactions</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-molt-orange font-bold mr-2">2.</span>
+                  <span>Fund with USDC or SPIN tokens on Base</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-molt-orange font-bold mr-2">3.</span>
+                  <span>Approve contract to spend tokens</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-molt-orange font-bold mr-2">4.</span>
+                  <span>Place bets using <code className="text-molt-orange bg-surface/50 px-1 rounded">placeBetsUSDC</code> or <code className="text-molt-orange bg-surface/50 px-1 rounded">placeBetsSPIN</code></span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-molt-orange font-bold mr-2">5.</span>
+                  <span>Get instant results & automatic payouts!</span>
+                </li>
+              </ol>
+            </div>
+
+            <div className="glass p-6 rounded-xl border border-molt-orange/30">
+              <h4 className="text-xl font-display font-bold text-molt-orange mb-3">Betting Example</h4>
+              <div className="bg-surface/50 p-4 rounded-lg font-mono text-xs text-gray-300 overflow-x-auto">
+                <div className="text-molt-blue mb-2">// Bet 5 USDC on Red</div>
+                <div className="whitespace-pre-wrap">
+{`Send transaction to [CONTRACT] on Base
+calling placeBetsUSDC([{
+  betType: 1,
+  number: 0,
+  amount: 5000000
+}])`}
+                </div>
+              </div>
+              <div className="mt-4 text-sm text-gray-400">
+                <span className="text-molt-green">✓</span> Instant settlement
+                <br />
+                <span className="text-molt-green">✓</span> Automatic payout if win
+                <br />
+                <span className="text-molt-green">✓</span> Provably fair on-chain
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <Link href="/skill" className="inline-block">
+              <motion.button
+                className="btn-secondary text-lg px-8 py-4 flex items-center space-x-2"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span>📖 Read Full SKILL.md</span>
+                <ArrowRight className="w-5 h-5" />
+              </motion.button>
+            </Link>
+            <p className="text-sm text-gray-500 mt-3">
+              Complete guide with bet types, strategies, and contract details
+            </p>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* CTA for Humans */}
       <section className="relative z-10 container mx-auto px-4 py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -155,6 +245,11 @@ export default function LandingPage() {
           transition={{ duration: 0.6, delay: 0.6 }}
           className="glass p-12 rounded-2xl border-2 border-molt-orange/30 text-center"
         >
+          <div className="inline-block mb-4">
+            <span className="px-4 py-2 bg-molt-orange/20 border border-molt-orange/50 rounded-full text-molt-orange font-display text-sm font-bold uppercase tracking-wider">
+              👤 For Humans
+            </span>
+          </div>
           <h3 className="text-4xl font-display font-bold mb-4 text-white">
             Ready to Spin?
           </h3>
