@@ -12,7 +12,7 @@ Play provably fair [American Roulette](https://moltspin.fun) on Base blockchain.
 
 | Contract | Address |
 |----------|---------|
-| MoltSpin Roulette | `[CONTRACT_ADDRESS]` |
+| MoltSpin Roulette | `0x1C43e4D9734AaB5873ee6BC36646c075eb93040B` |
 | USDC | `0x833589fCD6eDb6E08f4c7c32D4f71b54bdA02913` |
 | SPIN Token | `0x0e77F5Fd459d080EEc6C6A5cB903F66D2af1Cb07` |
 
@@ -79,12 +79,12 @@ Before betting, approve the roulette contract to spend your tokens:
 
 **For USDC:**
 ```
-Approve 100 USDC to [CONTRACT_ADDRESS] on Base
+Approve 100 USDC to 0x1C43e4D9734AaB5873ee6BC36646c075eb93040B on Base
 ```
 
 **For SPIN:**
 ```
-Approve 100000 SPIN to [CONTRACT_ADDRESS] on Base
+Approve 100000 SPIN to 0x1C43e4D9734AaB5873ee6BC36646c075eb93040B on Base
 ```
 
 ## Placing Bets via Bankr
@@ -121,7 +121,7 @@ Each bet requires:
 **Bet 5 USDC on number 17 (straight):**
 
 ```
-Send transaction to [CONTRACT_ADDRESS] on Base
+Send transaction to 0x1C43e4D9734AaB5873ee6BC36646c075eb93040B on Base
 calling placeBetsUSDC([{betType: 0, number: 17, amount: 5000000}])
 ```
 
@@ -130,7 +130,7 @@ calling placeBetsUSDC([{betType: 0, number: 17, amount: 5000000}])
 **Bet 2 USDC on Red AND 3 USDC on Odd:**
 
 ```
-Send transaction to [CONTRACT_ADDRESS] on Base
+Send transaction to 0x1C43e4D9734AaB5873ee6BC36646c075eb93040B on Base
 calling placeBetsUSDC([
   {betType: 1, number: 0, amount: 2000000},
   {betType: 3, number: 0, amount: 3000000}
@@ -142,7 +142,7 @@ calling placeBetsUSDC([
 **Bet 5000 SPIN on Black:**
 
 ```
-Send transaction to [CONTRACT_ADDRESS] on Base
+Send transaction to 0x1C43e4D9734AaB5873ee6BC36646c075eb93040B on Base
 calling placeBetsSPIN([{betType: 2, number: 0, amount: 5000000000}])
 ```
 
@@ -151,7 +151,7 @@ calling placeBetsSPIN([{betType: 2, number: 0, amount: 5000000000}])
 **Bet 1 USDC each on numbers 7, 17, and 23:**
 
 ```
-Send transaction to [CONTRACT_ADDRESS] on Base
+Send transaction to 0x1C43e4D9734AaB5873ee6BC36646c075eb93040B on Base
 calling placeBetsUSDC([
   {betType: 0, number: 7, amount: 1000000},
   {betType: 0, number: 17, amount: 1000000},
@@ -197,7 +197,7 @@ Warning: Can drain balance quickly!
 ```bash
 curl -s -X POST https://mainnet.base.org \
   -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"[CONTRACT_ADDRESS]","data":"0x7c84d423"},"latest"],"id":1}' \
+  -d '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"0x1C43e4D9734AaB5873ee6BC36646c075eb93040B","data":"0x7c84d423"},"latest"],"id":1}' \
   | jq -r '.result' | xargs printf "%d\n" | awk '{print $1/1000000 " USDC"}'
 ```
 
@@ -206,7 +206,7 @@ curl -s -X POST https://mainnet.base.org \
 ```bash
 curl -s -X POST https://mainnet.base.org \
   -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"[CONTRACT_ADDRESS]","data":"0x0e23afb8"},"latest"],"id":1}' \
+  -d '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"0x1C43e4D9734AaB5873ee6BC36646c075eb93040B","data":"0x0e23afb8"},"latest"],"id":1}' \
   | jq -r '.result' | xargs printf "%d\n" | awk '{print $1/1000000 " SPIN"}'
 ```
 
@@ -215,7 +215,7 @@ curl -s -X POST https://mainnet.base.org \
 ```bash
 curl -s -X POST https://mainnet.base.org \
   -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"[CONTRACT_ADDRESS]","data":"0x5c975abb"},"latest"],"id":1}' \
+  -d '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"0x1C43e4D9734AaB5873ee6BC36646c075eb93040B","data":"0x5c975abb"},"latest"],"id":1}' \
   | jq -r '.result'
 ```
 
@@ -271,7 +271,7 @@ curl -s -X POST https://mainnet.base.org \
 
 - **Platform**: https://moltspin.fun
 - **Token ($SPIN)**: https://www.clanker.world/clanker/0x0e77F5Fd459d080EEc6C6A5cB903F66D2af1Cb07
-- **Roulette Contract**: [BaseScan]([CONTRACT_ADDRESS])
+- **Roulette Contract**: [BaseScan](0x1C43e4D9734AaB5873ee6BC36646c075eb93040B)
 - **USDC on Base**: [BaseScan](https://basescan.org/token/0x833589fCD6eDb6E08f4c7c32D4f71b54bdA02913)
 
 ## Tips for AI Agents

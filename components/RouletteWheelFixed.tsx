@@ -129,11 +129,11 @@ export default function RouletteWheelFixed() {
       <div className="relative flex items-center justify-center py-12">
         {/* Outer glow */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-96 h-96 rounded-full bg-gradient-to-br from-molt-orange/20 to-molt-purple/20 blur-3xl animate-pulse-glow" />
+          <div className="w-[560px] h-[560px] rounded-full bg-gradient-to-br from-molt-orange/20 to-molt-purple/20 blur-3xl animate-pulse-glow" />
         </div>
 
         {/* Main Wheel */}
-        <div className="relative w-80 h-80">
+        <div className="relative w-[480px] h-[480px]">
           {/* Marker Arrow (Top) */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-6 z-30">
             <div className="relative">
@@ -166,11 +166,11 @@ export default function RouletteWheelFixed() {
             />
 
             {/* Wheel segments - DEPTH LAYER 2 */}
-            <div className="absolute inset-3 rounded-full overflow-hidden"
+            <div className="absolute inset-3 rounded-full"
                  style={{
                    boxShadow: "inset 0 5px 15px rgba(0,0,0,0.6)",
                  }}>
-              <svg viewBox="0 0 100 100" className="w-full h-full">
+              <svg viewBox="0 0 100 100" className="w-full h-full rounded-full overflow-hidden">
                 {WHEEL_ORDER.map((num, i) => {
                   const startAngle = (i * 360) / 38 - 90;
                   const endAngle = ((i + 1) * 360) / 38 - 90;
@@ -193,26 +193,29 @@ export default function RouletteWheelFixed() {
                   );
                 })}
               </svg>
+            </div>
 
-              {/* Numbers on wheel */}
+            {/* Numbers on wheel - OUTSIDE SVG so they're not clipped */}
+            <div className="absolute inset-3">
               {WHEEL_ORDER.map((num, i) => {
                 const angle = (i * 360) / 38;
                 const rad = ((angle - 90) * Math.PI) / 180;
-                const radius = 58; // Position on the wheel
+                const radius = 67; // Position radius (percentage of container)
                 const x = 50 + radius * Math.cos(rad);
                 const y = 50 + radius * Math.sin(rad);
 
                 return (
                   <div
-                    key={i}
-                    className="absolute"
+                    key={`num-${i}`}
+                    className="absolute pointer-events-none"
                     style={{
                       left: `${x}%`,
                       top: `${y}%`,
                       transform: `translate(-50%, -50%) rotate(${angle}deg)`,
+                      zIndex: 10,
                     }}
                   >
-                    <span className="text-white font-bold text-xs drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                    <span className="text-white font-bold text-sm drop-shadow-[0_2px_6px_rgba(0,0,0,1)]">
                       {num}
                     </span>
                   </div>
@@ -226,7 +229,7 @@ export default function RouletteWheelFixed() {
 
             {/* Center hub - DEPTH LAYER 3 */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-casino-gold via-yellow-500 to-casino-gold border-4 border-yellow-300 shadow-2xl"
+              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-casino-gold via-yellow-500 to-casino-gold border-4 border-yellow-300 shadow-2xl"
                    style={{
                      boxShadow: "0 8px 16px rgba(0,0,0,0.4), inset 0 -4px 8px rgba(0,0,0,0.3), inset 0 4px 8px rgba(255,255,255,0.3)",
                    }}>
@@ -245,7 +248,7 @@ export default function RouletteWheelFixed() {
               ease: isSpinning ? [0.25, 0.1, 0.25, 1] : "easeOut",
             }}
           >
-            <div className="absolute left-1/2 top-0 -translate-x-1/2 translate-y-6">
+            <div className="absolute left-1/2 top-0 -translate-x-1/2 translate-y-8">
               <motion.div
                 animate={isSpinning ? {
                   scale: [1, 0.8, 1],
@@ -257,9 +260,9 @@ export default function RouletteWheelFixed() {
                 }}
                 className="relative"
               >
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-white via-gray-100 to-gray-300 shadow-2xl"
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-white via-gray-100 to-gray-300 shadow-2xl"
                      style={{
-                       boxShadow: "0 4px 12px rgba(0,0,0,0.6), inset -2px -2px 4px rgba(0,0,0,0.2), inset 2px 2px 4px rgba(255,255,255,0.8)",
+                       boxShadow: "0 6px 16px rgba(0,0,0,0.6), inset -3px -3px 6px rgba(0,0,0,0.2), inset 3px 3px 6px rgba(255,255,255,0.8)",
                      }} />
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/60 via-transparent to-transparent" />
               </motion.div>
@@ -268,7 +271,7 @@ export default function RouletteWheelFixed() {
 
           {/* Center Display */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-            <div className="glass w-28 h-28 rounded-full flex flex-col items-center justify-center border-4 border-molt-orange/50 shadow-2xl backdrop-blur-md">
+            <div className="glass w-36 h-36 rounded-full flex flex-col items-center justify-center border-4 border-molt-orange/50 shadow-2xl backdrop-blur-md">
               <AnimatePresence mode="wait">
                 {currentNumber !== null && currentStatus === "result" ? (
                   <motion.div
