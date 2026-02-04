@@ -31,3 +31,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# foundry / smart contracts
+contracts/out/
+contracts/cache/
+contracts/lib/
+contracts/broadcast/
+*.cache
