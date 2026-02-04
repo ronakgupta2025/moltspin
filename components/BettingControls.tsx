@@ -10,6 +10,7 @@ export default function BettingControls() {
     useGame();
 
   const totalBet = bets.reduce((sum, bet) => sum + bet.amount, 0);
+  const isBettingLocked = round.status !== "betting" || round.timeRemaining <= 15;
 
   return (
     <div className="glass p-6 rounded-2xl border-2 border-molt-orange/30">
@@ -57,7 +58,7 @@ export default function BettingControls() {
         <div className="flex space-x-3">
           <button
             onClick={clearBets}
-            disabled={bets.length === 0 || round.status !== "betting"}
+            disabled={bets.length === 0 || isBettingLocked}
             className="btn-secondary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Trash2 className="w-4 h-4" />
@@ -66,11 +67,11 @@ export default function BettingControls() {
 
           <button
             onClick={submitBets}
-            disabled={bets.length === 0 || round.status !== "betting"}
+            disabled={bets.length === 0 || isBettingLocked}
             className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Check className="w-5 h-5" />
-            <span>Confirm Bets</span>
+            <span>{isBettingLocked && round.status === "betting" ? "Confirming..." : "Confirm Bets"}</span>
           </button>
         </div>
       </div>

@@ -23,8 +23,10 @@ export default function CasinoBettingTable() {
     }).length;
   };
 
+  const isBettingLocked = round.status !== "betting" || round.timeRemaining <= 15;
+
   const placeBet = (type: any, numbers: number[]) => {
-    if (round.status !== "betting") return;
+    if (isBettingLocked) return;
     addBet(type, numbers, selectedChipValue);
     gameSounds.playChipPlace();
   };
@@ -50,7 +52,7 @@ export default function CasinoBettingTable() {
           <div className="flex flex-col gap-2">
             <button
               onClick={() => placeBet("number", [0])}
-              disabled={round.status !== "betting"}
+              disabled={isBettingLocked}
               className="w-14 h-28 bg-casino-green hover:bg-casino-green/80 rounded font-bold text-white text-xl disabled:opacity-50 disabled:cursor-not-allowed relative transition-all shadow-lg border-2 border-casino-gold/50"
             >
               0
@@ -62,7 +64,7 @@ export default function CasinoBettingTable() {
             </button>
             <button
               onClick={() => placeBet("number", [37])}
-              disabled={round.status !== "betting"}
+              disabled={isBettingLocked}
               className="w-14 h-28 bg-casino-green hover:bg-casino-green/80 rounded font-bold text-white text-xl disabled:opacity-50 disabled:cursor-not-allowed relative transition-all shadow-lg border-2 border-casino-gold/50"
             >
               00
@@ -84,7 +86,7 @@ export default function CasinoBettingTable() {
                     <button
                       key={num}
                       onClick={() => placeBet("number", [num])}
-                      disabled={round.status !== "betting"}
+                      disabled={isBettingLocked}
                       className={`flex-1 h-14 rounded font-bold text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed relative transition-all shadow-lg border-2 border-white/20 hover:scale-105 ${
                         isRed(num)
                           ? "bg-casino-red hover:bg-casino-red/80"
@@ -111,7 +113,7 @@ export default function CasinoBettingTable() {
             <div className="grid grid-cols-3 gap-1">
               <button
                 onClick={() => placeBet("dozen1", [])}
-                disabled={round.status !== "betting"}
+                disabled={isBettingLocked}
                 className="h-10 glass border-2 border-molt-orange/50 hover:bg-molt-orange/20 rounded font-display font-bold text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed relative"
               >
                 1-12 (2:1)
@@ -123,7 +125,7 @@ export default function CasinoBettingTable() {
               </button>
               <button
                 onClick={() => placeBet("dozen2", [])}
-                disabled={round.status !== "betting"}
+                disabled={isBettingLocked}
                 className="h-10 glass border-2 border-molt-orange/50 hover:bg-molt-orange/20 rounded font-display font-bold text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed relative"
               >
                 13-24 (2:1)
@@ -135,7 +137,7 @@ export default function CasinoBettingTable() {
               </button>
               <button
                 onClick={() => placeBet("dozen3", [])}
-                disabled={round.status !== "betting"}
+                disabled={isBettingLocked}
                 className="h-10 glass border-2 border-molt-orange/50 hover:bg-molt-orange/20 rounded font-display font-bold text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed relative"
               >
                 25-36 (2:1)
@@ -154,7 +156,7 @@ export default function CasinoBettingTable() {
           {/* Red */}
           <button
             onClick={() => placeBet("red", [])}
-            disabled={round.status !== "betting"}
+            disabled={isBettingLocked}
             className="h-16 bg-casino-red hover:bg-casino-red/80 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative border-2 border-white/30 shadow-lg"
           >
             <div className="text-white text-lg">RED</div>
@@ -169,7 +171,7 @@ export default function CasinoBettingTable() {
           {/* Black */}
           <button
             onClick={() => placeBet("black", [])}
-            disabled={round.status !== "betting"}
+            disabled={isBettingLocked}
             className="h-16 bg-black hover:bg-gray-800 border-2 border-white/30 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative shadow-lg"
           >
             <div className="text-white text-lg">BLACK</div>
@@ -184,7 +186,7 @@ export default function CasinoBettingTable() {
           {/* Odd */}
           <button
             onClick={() => placeBet("odd", [])}
-            disabled={round.status !== "betting"}
+            disabled={isBettingLocked}
             className="h-16 glass border-2 border-molt-blue/50 hover:bg-molt-blue/20 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative shadow-lg"
           >
             <div className="text-molt-blue text-lg">ODD</div>
@@ -199,7 +201,7 @@ export default function CasinoBettingTable() {
           {/* Even */}
           <button
             onClick={() => placeBet("even", [])}
-            disabled={round.status !== "betting"}
+            disabled={isBettingLocked}
             className="h-16 glass border-2 border-molt-purple/50 hover:bg-molt-purple/20 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative shadow-lg"
           >
             <div className="text-molt-purple text-lg">EVEN</div>
@@ -214,7 +216,7 @@ export default function CasinoBettingTable() {
           {/* Low */}
           <button
             onClick={() => placeBet("low", [])}
-            disabled={round.status !== "betting"}
+            disabled={isBettingLocked}
             className="h-16 glass border-2 border-casino-gold/50 hover:bg-casino-gold/20 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative shadow-lg"
           >
             <div className="text-casino-gold text-lg">1-18</div>
@@ -229,7 +231,7 @@ export default function CasinoBettingTable() {
           {/* High */}
           <button
             onClick={() => placeBet("high", [])}
-            disabled={round.status !== "betting"}
+            disabled={isBettingLocked}
             className="h-16 glass border-2 border-casino-gold/50 hover:bg-casino-gold/20 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative shadow-lg"
           >
             <div className="text-casino-gold text-lg">19-36</div>

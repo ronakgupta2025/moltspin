@@ -472,10 +472,18 @@ export default function RouletteWheelPro() {
                     exit={{ opacity: 0 }}
                     className="text-center"
                   >
-                    <div className="text-5xl font-bold text-orange-400 font-mono">
-                      {round.timeRemaining}
+                    <div className={`text-5xl font-bold font-mono ${
+                      round.status === "betting" && round.timeRemaining <= 15 
+                        ? "text-orange-500" 
+                        : "text-orange-400"
+                    }`}>
+                      {round.status === "betting" 
+                        ? (round.timeRemaining > 15 ? round.timeRemaining - 15 : round.timeRemaining)
+                        : round.timeRemaining}
                     </div>
-                    <div className="text-xs text-gray-400 mt-1">SECONDS</div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {round.status === "betting" && round.timeRemaining <= 15 ? "CONFIRMING" : "SECONDS"}
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
