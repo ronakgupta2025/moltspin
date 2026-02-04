@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WagmiProvider, http, createConfig, createStorage, cookieStorage } from 'wagmi';
+import { WagmiProvider, http } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { RainbowKitProvider, getDefaultConfig } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
@@ -15,14 +15,17 @@ const config = getDefaultConfig({
   transports: {
     [base.id]: http('https://mainnet.base.org'),
   },
-  storage: createStorage({
-    storage: cookieStorage,
-  }),
   ssr: true,
 });
 
 // Create query client
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 export default function Web3Provider({ children }: { children: ReactNode }) {
   return (

@@ -286,3 +286,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 // Export chip values for use in components
 export const getChipValues = (token: TokenType) => 
   token === 'USDC' ? CHIP_VALUES_USDC : CHIP_VALUES_SPIN;
+
+// Re-export TokenType for use in other components
+export type { TokenType };

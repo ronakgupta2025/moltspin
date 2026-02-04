@@ -4,7 +4,7 @@ import { useGame } from "./GameProvider";
 import { Wallet, Zap } from "lucide-react";
 
 export default function Header() {
-  const { balance } = useGame();
+  const { balance, selectedToken } = useGame();
 
   return (
     <header className="border-b border-molt-orange/30 bg-surface/50 backdrop-blur-md sticky top-0 z-50">
@@ -40,7 +40,7 @@ export default function Header() {
           <div className="glass px-4 py-2 rounded-lg border-2 border-casino-gold/50">
             <div className="text-xs text-gray-400">Balance</div>
             <div className="text-lg font-display font-bold text-casino-gold">
-              {balance.toFixed(3)} ETH
+              {balance} {selectedToken}
             </div>
           </div>
 

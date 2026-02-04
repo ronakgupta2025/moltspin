@@ -7,7 +7,7 @@ import { gameSounds } from "./SoundManager";
 const RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
 
 export default function BettingTable() {
-  const { addBet, selectedChipValue, round, bets } = useGame();
+  const { addBet, selectedChipValue, bets, isConnected, isPlacingBets } = useGame();
 
   const isRed = (num: number) => RED_NUMBERS.includes(num);
 
@@ -24,10 +24,12 @@ export default function BettingTable() {
   };
 
   const placeBet = (type: any, numbers: number[]) => {
-    if (round.status !== "betting") return;
+    if (!isConnected || isPlacingBets) return;
     addBet(type, numbers, selectedChipValue);
     gameSounds.playChipPlace();
   };
+
+  const canBet = isConnected && !isPlacingBets;
 
   return (
     <div className="glass p-6 rounded-2xl border-2 border-molt-orange/30">
@@ -38,7 +40,7 @@ export default function BettingTable() {
         <div className="flex justify-center mb-4 space-x-2">
           <button
             onClick={() => placeBet("number", [0])}
-            disabled={round.status !== "betting"}
+            disabled={!canBet}
             className="roulette-number bg-casino-green hover:bg-casino-green/80 disabled:opacity-50 disabled:cursor-not-allowed relative"
           >
             0
@@ -50,7 +52,7 @@ export default function BettingTable() {
           </button>
           <button
             onClick={() => placeBet("number", [37])}
-            disabled={round.status !== "betting"}
+            disabled={!canBet}
             className="roulette-number bg-casino-green hover:bg-casino-green/80 disabled:opacity-50 disabled:cursor-not-allowed relative"
           >
             00
@@ -68,7 +70,7 @@ export default function BettingTable() {
             <button
               key={num}
               onClick={() => placeBet("number", [num])}
-              disabled={round.status !== "betting"}
+              disabled={!canBet}
               className={`roulette-number ${
                 isRed(num)
                   ? "bg-casino-red hover:bg-casino-red/80"
@@ -94,7 +96,7 @@ export default function BettingTable() {
           {/* Red */}
           <button
             onClick={() => placeBet("red", [])}
-            disabled={round.status !== "betting"}
+            disabled={!canBet}
             className="px-4 py-3 bg-casino-red hover:bg-casino-red/80 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative"
           >
             RED (1:1)
@@ -108,7 +110,7 @@ export default function BettingTable() {
           {/* Black */}
           <button
             onClick={() => placeBet("black", [])}
-            disabled={round.status !== "betting"}
+            disabled={!canBet}
             className="px-4 py-3 bg-black hover:bg-gray-800 border border-white/30 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative"
           >
             BLACK (1:1)
@@ -122,7 +124,7 @@ export default function BettingTable() {
           {/* Odd */}
           <button
             onClick={() => placeBet("odd", [])}
-            disabled={round.status !== "betting"}
+            disabled={!canBet}
             className="px-4 py-3 glass border-2 border-molt-blue/50 hover:bg-molt-blue/20 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative"
           >
             ODD (1:1)
@@ -136,7 +138,7 @@ export default function BettingTable() {
           {/* Even */}
           <button
             onClick={() => placeBet("even", [])}
-            disabled={round.status !== "betting"}
+            disabled={!canBet}
             className="px-4 py-3 glass border-2 border-molt-purple/50 hover:bg-molt-purple/20 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative"
           >
             EVEN (1:1)
@@ -150,7 +152,7 @@ export default function BettingTable() {
           {/* Low */}
           <button
             onClick={() => placeBet("low", [])}
-            disabled={round.status !== "betting"}
+            disabled={!canBet}
             className="px-4 py-3 glass border-2 border-casino-gold/50 hover:bg-casino-gold/20 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative"
           >
             1-18 (1:1)
@@ -164,7 +166,7 @@ export default function BettingTable() {
           {/* High */}
           <button
             onClick={() => placeBet("high", [])}
-            disabled={round.status !== "betting"}
+            disabled={!canBet}
             className="px-4 py-3 glass border-2 border-casino-gold/50 hover:bg-casino-gold/20 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative"
           >
             19-36 (1:1)
@@ -180,7 +182,7 @@ export default function BettingTable() {
         <div className="grid grid-cols-3 gap-2 mt-2">
           <button
             onClick={() => placeBet("dozen1", [])}
-            disabled={round.status !== "betting"}
+            disabled={!canBet}
             className="px-4 py-3 glass border-2 border-molt-orange/50 hover:bg-molt-orange/20 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative"
           >
             1st 12 (2:1)
@@ -192,7 +194,7 @@ export default function BettingTable() {
           </button>
           <button
             onClick={() => placeBet("dozen2", [])}
-            disabled={round.status !== "betting"}
+            disabled={!canBet}
             className="px-4 py-3 glass border-2 border-molt-orange/50 hover:bg-molt-orange/20 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative"
           >
             2nd 12 (2:1)
@@ -204,7 +206,7 @@ export default function BettingTable() {
           </button>
           <button
             onClick={() => placeBet("dozen3", [])}
-            disabled={round.status !== "betting"}
+            disabled={!canBet}
             className="px-4 py-3 glass border-2 border-molt-orange/50 hover:bg-molt-orange/20 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative"
           >
             3rd 12 (2:1)
@@ -217,9 +219,14 @@ export default function BettingTable() {
         </div>
 
         {/* Bet Info */}
-        {round.status !== "betting" && (
+        {!isConnected && (
+          <div className="mt-4 text-center text-yellow-500 font-display font-bold">
+            Connect your wallet to place bets
+          </div>
+        )}
+        {isPlacingBets && (
           <div className="mt-4 text-center text-yellow-500 font-display font-bold animate-pulse">
-            {round.status === "spinning" ? "🎰 Spinning..." : "🎉 Round Complete!"}
+            🎰 Placing bets...
           </div>
         )}
       </div>

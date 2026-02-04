@@ -14,11 +14,10 @@ const WHEEL_ORDER = [
 const RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
 
 export default function RouletteWheelFixed() {
-  const { round } = useGame();
+  const { lastResult, history, isPlacingBets, showResultModal } = useGame();
   const [rotation, setRotation] = useState(0);
   const [ballRotation, setBallRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [hasSpinStarted, setHasSpinStarted] = useState(false);
   const [soundsInitialized, setSoundsInitialized] = useState(false);
 
   // Initialize sounds on first interaction
@@ -35,9 +34,9 @@ export default function RouletteWheelFixed() {
     return () => document.removeEventListener("click", initSounds);
   }, [soundsInitialized]);
 
+  // Handle spinning when result comes in
   useEffect(() => {
-    if (round.status === "spinning" && !hasSpinStarted) {
-      setHasSpinStarted(true);
+    if (lastResult && !isSpinning) {
       setIsSpinning(true);
 
       // Play sounds
@@ -54,17 +53,15 @@ export default function RouletteWheelFixed() {
       }
 
       // Calculate target rotation
-      if (round.winningNumber !== null) {
-        const winningNum = round.winningNumber === 37 ? "00" : round.winningNumber;
-        const winningIndex = WHEEL_ORDER.indexOf(winningNum);
-        const segmentAngle = 360 / 38;
-        const targetAngle = winningIndex * segmentAngle;
-        
-        // 5 full rotations + target position
-        const finalRotation = 360 * 5 + targetAngle;
-        setRotation(finalRotation);
-        setBallRotation(-finalRotation * 1.1); // Ball rotates opposite, slightly faster
-      }
+      const winningNum = lastResult.winningNumber === 37 ? "00" : lastResult.winningNumber;
+      const winningIndex = WHEEL_ORDER.indexOf(winningNum);
+      const segmentAngle = 360 / 38;
+      const targetAngle = winningIndex * segmentAngle;
+      
+      // 5 full rotations + target position
+      const finalRotation = 360 * 5 + targetAngle;
+      setRotation(finalRotation);
+      setBallRotation(-finalRotation * 1.1); // Ball rotates opposite, slightly faster
 
       // Stop spinning
       setTimeout(() => {
@@ -73,23 +70,16 @@ export default function RouletteWheelFixed() {
           console.log("🔊 Playing ball land sound");
           gameSounds.playBallLand();
         }
+        
+        // Play win sound
+        setTimeout(() => {
+          const isBigWin = parseFloat(lastResult.payout) > 10;
+          console.log("🔊 Playing win sound");
+          gameSounds.playWin(isBigWin);
+        }, 300);
       }, 5000);
-
-    } else if (round.status === "betting") {
-      setHasSpinStarted(false);
     }
-  }, [round.status, hasSpinStarted, round.winningNumber, soundsInitialized]);
-
-  // Play win sound
-  useEffect(() => {
-    if (round.status === "result" && round.winningNumber !== null && soundsInitialized) {
-      setTimeout(() => {
-        const isBigWin = Math.random() > 0.7;
-        console.log("🔊 Playing win sound");
-        gameSounds.playWin(isBigWin);
-      }, 800);
-    }
-  }, [round.status, round.winningNumber, soundsInitialized]);
+  }, [lastResult, soundsInitialized]);
 
   const getNumberColor = (num: number | string) => {
     if (num === 0 || num === "00" || num === 37) return "green";
@@ -102,6 +92,9 @@ export default function RouletteWheelFixed() {
     return num.toString();
   };
 
+  const currentStatus = isPlacingBets ? "spinning" : lastResult ? "result" : "betting";
+  const currentNumber = lastResult?.winningNumber || null;
+
   return (
     <div className="glass p-8 rounded-2xl border-2 border-molt-orange/30 relative overflow-hidden">
       {/* Background glow */}
@@ -110,24 +103,24 @@ export default function RouletteWheelFixed() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6 relative z-10">
         <h2 className="text-2xl font-display font-bold text-molt-orange">
-          Round #{round.roundId}
+          Roulette Wheel
         </h2>
         <div className="flex items-center space-x-2">
           <div
             className={`w-3 h-3 rounded-full ${
-              round.status === "betting"
+              currentStatus === "betting"
                 ? "bg-green-500 animate-pulse shadow-lg shadow-green-500/50"
-                : round.status === "spinning"
+                : currentStatus === "spinning"
                 ? "bg-yellow-500 animate-pulse shadow-lg shadow-yellow-500/50"
                 : "bg-blue-500 shadow-lg shadow-blue-500/50"
             }`}
           />
           <span className="text-sm font-mono uppercase text-gray-300 font-bold">
-            {round.status === "betting"
+            {currentStatus === "betting"
               ? "Place Your Bets"
-              : round.status === "spinning"
+              : currentStatus === "spinning"
               ? "Spinning..."
-              : "Results"}
+              : "Ready"}
           </span>
         </div>
       </div>
@@ -273,13 +266,13 @@ export default function RouletteWheelFixed() {
             </div>
           </motion.div>
 
-          {/* Center Timer Display */}
+          {/* Center Display */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
             <div className="glass w-28 h-28 rounded-full flex flex-col items-center justify-center border-4 border-molt-orange/50 shadow-2xl backdrop-blur-md">
               <AnimatePresence mode="wait">
-                {round.status === "result" && round.winningNumber !== null ? (
+                {currentNumber !== null && currentStatus === "result" ? (
                   <motion.div
-                    key={round.winningNumber}
+                    key={currentNumber}
                     initial={{ scale: 0, opacity: 0, rotate: -180 }}
                     animate={{ scale: 1, opacity: 1, rotate: 0 }}
                     exit={{ scale: 0, opacity: 0 }}
@@ -287,29 +280,31 @@ export default function RouletteWheelFixed() {
                   >
                     <div
                       className={`text-4xl font-display font-bold px-3 py-1 rounded-lg shadow-xl ${
-                        getNumberColor(round.winningNumber) === "green"
+                        getNumberColor(currentNumber) === "green"
                           ? "bg-casino-green text-white"
-                          : getNumberColor(round.winningNumber) === "red"
+                          : getNumberColor(currentNumber) === "red"
                           ? "bg-casino-red text-white"
                           : "bg-black text-white border border-white/30"
                       }`}
                     >
-                      {getNumberDisplay(round.winningNumber)}
+                      {getNumberDisplay(currentNumber)}
                     </div>
                     <div className="text-xs text-molt-orange mt-1 uppercase font-bold">Winner!</div>
                   </motion.div>
                 ) : (
                   <motion.div
-                    key="timer"
+                    key="ready"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     className="text-center"
                   >
-                    <div className="text-5xl font-display font-bold text-molt-orange drop-shadow-lg">
-                      {round.timeRemaining}
+                    <div className="text-3xl font-display font-bold text-molt-orange drop-shadow-lg">
+                      🎰
                     </div>
-                    <div className="text-xs text-gray-400 uppercase">seconds</div>
+                    <div className="text-xs text-gray-400 uppercase mt-1">
+                      {isPlacingBets ? "Spinning" : "Ready"}
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -325,7 +320,7 @@ export default function RouletteWheelFixed() {
         </div>
         <div className="flex space-x-2 overflow-x-auto pb-2">
           <AnimatePresence>
-            {round.history.map((num, idx) => {
+            {history.slice(0, 10).map((num, idx) => {
               const color = getNumberColor(num);
               return (
                 <motion.div

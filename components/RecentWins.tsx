@@ -5,7 +5,14 @@ import { Trophy, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function RecentWins() {
-  const { recentWins } = useGame();
+  const { history } = useGame();
+  
+  // Mock recent wins data for now
+  const recentWins = history.slice(0, 3).map((num, idx) => ({
+    player: '0x' + Math.random().toString(16).slice(2, 8),
+    bet: `Number ${num}`,
+    amount: (Math.random() * 10).toFixed(2),
+  }));
 
   return (
     <div className="glass p-6 rounded-2xl border-2 border-molt-orange/30">

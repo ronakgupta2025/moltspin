@@ -2,7 +2,7 @@
 
 import { GameProvider } from '@/components/GameProvider';
 import PlayHeader from '@/components/PlayHeader';
-import RouletteWheelPro from '@/components/RouletteWheelPro';
+import RouletteWheelFixed from '@/components/RouletteWheelFixed';
 import CasinoBettingTable from '@/components/CasinoBettingTable';
 import BettingControls from '@/components/BettingControls';
 import GameInfo from '@/components/GameInfo';
@@ -25,7 +25,7 @@ export default function PlayPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {/* Wheel (takes 2 columns) */}
             <div className="lg:col-span-2">
-              <RouletteWheelPro />
+              <RouletteWheelFixed />
             </div>
             
             {/* Game Info Sidebar */}
