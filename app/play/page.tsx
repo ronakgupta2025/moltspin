@@ -1,18 +1,20 @@
-"use client";
+'use client';
 
-import { GameProvider } from "@/components/GameProvider";
-import PlayHeader from "@/components/PlayHeader";
-import RouletteWheelPro from "@/components/RouletteWheelPro";
-import CasinoBettingTable from "@/components/CasinoBettingTable";
-import BettingControls from "@/components/BettingControls";
-import GameInfo from "@/components/GameInfo";
-import StatsPanel from "@/components/StatsPanel";
-import SoundManager from "@/components/SoundManager";
+import { GameProvider } from '@/components/GameProvider';
+import PlayHeader from '@/components/PlayHeader';
+import RouletteWheelPro from '@/components/RouletteWheelPro';
+import CasinoBettingTable from '@/components/CasinoBettingTable';
+import BettingControls from '@/components/BettingControls';
+import GameInfo from '@/components/GameInfo';
+import StatsPanel from '@/components/StatsPanel';
+import SoundManager from '@/components/SoundManager';
+import ResultModal from '@/components/ResultModal';
 
 export default function PlayPage() {
   return (
     <GameProvider>
       <SoundManager />
+      <ResultModal />
       <div className="min-h-screen bg-gradient-to-br from-background via-surface/50 to-background">
         {/* Header */}
         <PlayHeader />

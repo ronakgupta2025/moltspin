@@ -1,11 +1,17 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useGame } from "./GameProvider";
-import { Wallet, Zap, User, ArrowLeft } from "lucide-react";
+import Link from 'next/link';
+import { useGame } from './GameProvider';
+import ConnectWallet from './ConnectWallet';
+import { Zap, User, ArrowLeft, Coins } from 'lucide-react';
 
 export default function PlayHeader() {
-  const { balance } = useGame();
+  const { balance, selectedToken, isConnected } = useGame();
+
+  const tokenSymbol = selectedToken === 'USDC' ? 'USDC' : 'SPIN';
+  const formattedBalance = parseFloat(balance).toLocaleString(undefined, {
+    maximumFractionDigits: selectedToken === 'USDC' ? 2 : 0,
+  });
 
   return (
     <header className="border-b border-molt-orange/30 bg-surface/50 backdrop-blur-md sticky top-0 z-50">
@@ -34,38 +40,50 @@ export default function PlayHeader() {
         {/* Center Stats */}
         <div className="hidden md:flex items-center space-x-4">
           <div className="stat-card">
-            <div className="text-xs text-gray-400 uppercase">Players Online</div>
-            <div className="text-lg font-display font-bold text-molt-orange">47</div>
+            <div className="text-xs text-gray-400 uppercase">Network</div>
+            <div className="text-lg font-display font-bold text-molt-blue flex items-center gap-1">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              Base
+            </div>
           </div>
           <div className="stat-card">
-            <div className="text-xs text-gray-400 uppercase">Round Pot</div>
-            <div className="text-lg font-display font-bold text-molt-blue">2.45 ETH</div>
+            <div className="text-xs text-gray-400 uppercase">Contract</div>
+            <a 
+              href="https://basescan.org/address/0x1C43e4D9734AaB5873ee6BC36646c075eb93040B"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-display font-bold text-molt-orange hover:underline"
+            >
+              0x1C43...040B
+            </a>
           </div>
         </div>
 
-        {/* Right Side: Balance + Profile */}
+        {/* Right Side: Balance + Wallet */}
         <div className="flex items-center space-x-3">
-          {/* Balance */}
-          <div className="glass px-4 py-2 rounded-lg border-2 border-casino-gold/50">
-            <div className="text-xs text-gray-400">Balance</div>
-            <div className="text-lg font-display font-bold text-casino-gold">
-              {balance.toFixed(3)} ETH
+          {/* Balance (only show when connected) */}
+          {isConnected && (
+            <div className="glass px-4 py-2 rounded-lg border-2 border-casino-gold/50">
+              <div className="text-xs text-gray-400 flex items-center gap-1">
+                <Coins className="w-3 h-3" />
+                {tokenSymbol}
+              </div>
+              <div className="text-lg font-display font-bold text-casino-gold">
+                {formattedBalance}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Profile */}
           <Link href="/profile">
             <button className="btn-secondary flex items-center space-x-2 !px-3 !py-2">
               <User className="w-4 h-4" />
-              <span className="hidden sm:inline">Profile</span>
+              <span className="hidden sm:inline">History</span>
             </button>
           </Link>
 
-          {/* Connect Wallet Button */}
-          <button className="btn-primary flex items-center space-x-2 !px-3 !py-2">
-            <Wallet className="w-4 h-4" />
-            <span className="hidden sm:inline">Demo</span>
-          </button>
+          {/* Connect Wallet */}
+          <ConnectWallet />
         </div>
       </div>
     </header>

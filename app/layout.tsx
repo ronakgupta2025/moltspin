@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Web3Provider from "@/components/Web3Provider";
 
 export const metadata: Metadata = {
   title: "MoltSpin - On-Chain American Roulette",
@@ -19,7 +20,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="crt-effect relative overflow-x-hidden">
-        {children}
+        <Web3Provider>
+          {children}
+        </Web3Provider>
       </body>
     </html>
   );

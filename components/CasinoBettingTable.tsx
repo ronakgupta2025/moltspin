@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { useGame } from "./GameProvider";
-import { motion } from "framer-motion";
-import { gameSounds } from "./SoundManager";
+import { useGame, BetType } from './GameProvider';
+import { motion } from 'framer-motion';
+import { gameSounds } from './SoundManager';
 
 const RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
 
 export default function CasinoBettingTable() {
-  const { addBet, selectedChipValue, round, bets } = useGame();
+  const { addBet, selectedChipValue, bets, isConnected, isPlacingBets } = useGame();
 
   const isRed = (num: number) => RED_NUMBERS.includes(num);
 
-  const getBetCount = (type: string, numbers?: number[]) => {
+  const getBetCount = (type: BetType, numbers?: number[]) => {
     return bets.filter((bet) => {
       if (bet.type === type) {
-        if (numbers && bet.numbers.length > 0) {
+        if (type === 'straight' && numbers && bet.numbers.length > 0) {
           return bet.numbers[0] === numbers[0];
         }
         return true;
@@ -23,9 +23,9 @@ export default function CasinoBettingTable() {
     }).length;
   };
 
-  const isBettingLocked = round.status !== "betting" || round.timeRemaining <= 15;
+  const isBettingLocked = !isConnected || isPlacingBets;
 
-  const placeBet = (type: any, numbers: number[]) => {
+  const placeBet = (type: BetType, numbers: number[]) => {
     if (isBettingLocked) return;
     addBet(type, numbers, selectedChipValue);
     gameSounds.playChipPlace();
@@ -46,31 +46,37 @@ export default function CasinoBettingTable() {
     <div className="glass p-6 rounded-2xl border-2 border-molt-orange/30">
       <h3 className="text-xl font-display font-bold text-molt-orange mb-4">Betting Table</h3>
 
+      {!isConnected && (
+        <div className="text-center py-4 mb-4 bg-surface/50 rounded-lg border border-molt-orange/20">
+          <p className="text-gray-400">Connect your wallet to place bets</p>
+        </div>
+      )}
+
       <div className="bg-casino-felt/30 p-4 rounded-xl border-2 border-casino-gold/30 backdrop-blur-sm">
         <div className="flex gap-2">
           {/* Left side: 0 and 00 */}
           <div className="flex flex-col gap-2">
             <button
-              onClick={() => placeBet("number", [0])}
+              onClick={() => placeBet('straight', [0])}
               disabled={isBettingLocked}
               className="w-14 h-28 bg-casino-green hover:bg-casino-green/80 rounded font-bold text-white text-xl disabled:opacity-50 disabled:cursor-not-allowed relative transition-all shadow-lg border-2 border-casino-gold/50"
             >
               0
-              {getBetCount("number", [0]) > 0 && (
+              {getBetCount('straight', [0]) > 0 && (
                 <span className="absolute -top-2 -right-2 w-6 h-6 bg-molt-orange rounded-full text-xs flex items-center justify-center shadow-lg">
-                  {getBetCount("number", [0])}
+                  {getBetCount('straight', [0])}
                 </span>
               )}
             </button>
             <button
-              onClick={() => placeBet("number", [37])}
+              onClick={() => placeBet('straight', [37])}
               disabled={isBettingLocked}
               className="w-14 h-28 bg-casino-green hover:bg-casino-green/80 rounded font-bold text-white text-xl disabled:opacity-50 disabled:cursor-not-allowed relative transition-all shadow-lg border-2 border-casino-gold/50"
             >
               00
-              {getBetCount("number", [37]) > 0 && (
+              {getBetCount('straight', [37]) > 0 && (
                 <span className="absolute -top-2 -right-2 w-6 h-6 bg-molt-orange rounded-full text-xs flex items-center justify-center shadow-lg">
-                  {getBetCount("number", [37])}
+                  {getBetCount('straight', [37])}
                 </span>
               )}
             </button>
@@ -85,22 +91,22 @@ export default function CasinoBettingTable() {
                   {row.map((num) => (
                     <button
                       key={num}
-                      onClick={() => placeBet("number", [num])}
+                      onClick={() => placeBet('straight', [num])}
                       disabled={isBettingLocked}
                       className={`flex-1 h-14 rounded font-bold text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed relative transition-all shadow-lg border-2 border-white/20 hover:scale-105 ${
                         isRed(num)
-                          ? "bg-casino-red hover:bg-casino-red/80"
-                          : "bg-black hover:bg-gray-800"
+                          ? 'bg-casino-red hover:bg-casino-red/80'
+                          : 'bg-black hover:bg-gray-800'
                       }`}
                     >
                       {num}
-                      {getBetCount("number", [num]) > 0 && (
+                      {getBetCount('straight', [num]) > 0 && (
                         <motion.span
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
                           className="absolute -top-2 -right-2 w-6 h-6 bg-molt-orange rounded-full text-xs flex items-center justify-center shadow-lg"
                         >
-                          {getBetCount("number", [num])}
+                          {getBetCount('straight', [num])}
                         </motion.span>
                       )}
                     </button>
@@ -112,38 +118,38 @@ export default function CasinoBettingTable() {
             {/* Dozen bets below numbers */}
             <div className="grid grid-cols-3 gap-1">
               <button
-                onClick={() => placeBet("dozen1", [])}
+                onClick={() => placeBet('dozen1', [])}
                 disabled={isBettingLocked}
                 className="h-10 glass border-2 border-molt-orange/50 hover:bg-molt-orange/20 rounded font-display font-bold text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed relative"
               >
                 1-12 (2:1)
-                {getBetCount("dozen1") > 0 && (
+                {getBetCount('dozen1') > 0 && (
                   <span className="absolute -top-2 -right-2 w-6 h-6 bg-molt-orange rounded-full text-xs flex items-center justify-center">
-                    {getBetCount("dozen1")}
+                    {getBetCount('dozen1')}
                   </span>
                 )}
               </button>
               <button
-                onClick={() => placeBet("dozen2", [])}
+                onClick={() => placeBet('dozen2', [])}
                 disabled={isBettingLocked}
                 className="h-10 glass border-2 border-molt-orange/50 hover:bg-molt-orange/20 rounded font-display font-bold text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed relative"
               >
                 13-24 (2:1)
-                {getBetCount("dozen2") > 0 && (
+                {getBetCount('dozen2') > 0 && (
                   <span className="absolute -top-2 -right-2 w-6 h-6 bg-molt-orange rounded-full text-xs flex items-center justify-center">
-                    {getBetCount("dozen2")}
+                    {getBetCount('dozen2')}
                   </span>
                 )}
               </button>
               <button
-                onClick={() => placeBet("dozen3", [])}
+                onClick={() => placeBet('dozen3', [])}
                 disabled={isBettingLocked}
                 className="h-10 glass border-2 border-molt-orange/50 hover:bg-molt-orange/20 rounded font-display font-bold text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed relative"
               >
                 25-36 (2:1)
-                {getBetCount("dozen3") > 0 && (
+                {getBetCount('dozen3') > 0 && (
                   <span className="absolute -top-2 -right-2 w-6 h-6 bg-molt-orange rounded-full text-xs flex items-center justify-center">
-                    {getBetCount("dozen3")}
+                    {getBetCount('dozen3')}
                   </span>
                 )}
               </button>
@@ -151,103 +157,96 @@ export default function CasinoBettingTable() {
           </div>
         </div>
 
-        {/* Outside bets (below main grid) */}
+        {/* Outside bets */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mt-4">
-          {/* Red */}
           <button
-            onClick={() => placeBet("red", [])}
+            onClick={() => placeBet('red', [])}
             disabled={isBettingLocked}
             className="h-16 bg-casino-red hover:bg-casino-red/80 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative border-2 border-white/30 shadow-lg"
           >
             <div className="text-white text-lg">RED</div>
             <div className="text-white/70 text-xs">(1:1)</div>
-            {getBetCount("red") > 0 && (
+            {getBetCount('red') > 0 && (
               <span className="absolute -top-2 -right-2 w-7 h-7 bg-molt-orange rounded-full text-xs flex items-center justify-center shadow-lg">
-                {getBetCount("red")}
+                {getBetCount('red')}
               </span>
             )}
           </button>
 
-          {/* Black */}
           <button
-            onClick={() => placeBet("black", [])}
+            onClick={() => placeBet('black', [])}
             disabled={isBettingLocked}
             className="h-16 bg-black hover:bg-gray-800 border-2 border-white/30 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative shadow-lg"
           >
             <div className="text-white text-lg">BLACK</div>
             <div className="text-white/70 text-xs">(1:1)</div>
-            {getBetCount("black") > 0 && (
+            {getBetCount('black') > 0 && (
               <span className="absolute -top-2 -right-2 w-7 h-7 bg-molt-orange rounded-full text-xs flex items-center justify-center shadow-lg">
-                {getBetCount("black")}
+                {getBetCount('black')}
               </span>
             )}
           </button>
 
-          {/* Odd */}
           <button
-            onClick={() => placeBet("odd", [])}
+            onClick={() => placeBet('odd', [])}
             disabled={isBettingLocked}
             className="h-16 glass border-2 border-molt-blue/50 hover:bg-molt-blue/20 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative shadow-lg"
           >
             <div className="text-molt-blue text-lg">ODD</div>
             <div className="text-gray-400 text-xs">(1:1)</div>
-            {getBetCount("odd") > 0 && (
+            {getBetCount('odd') > 0 && (
               <span className="absolute -top-2 -right-2 w-7 h-7 bg-molt-orange rounded-full text-xs flex items-center justify-center shadow-lg">
-                {getBetCount("odd")}
+                {getBetCount('odd')}
               </span>
             )}
           </button>
 
-          {/* Even */}
           <button
-            onClick={() => placeBet("even", [])}
+            onClick={() => placeBet('even', [])}
             disabled={isBettingLocked}
             className="h-16 glass border-2 border-molt-purple/50 hover:bg-molt-purple/20 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative shadow-lg"
           >
             <div className="text-molt-purple text-lg">EVEN</div>
             <div className="text-gray-400 text-xs">(1:1)</div>
-            {getBetCount("even") > 0 && (
+            {getBetCount('even') > 0 && (
               <span className="absolute -top-2 -right-2 w-7 h-7 bg-molt-orange rounded-full text-xs flex items-center justify-center shadow-lg">
-                {getBetCount("even")}
+                {getBetCount('even')}
               </span>
             )}
           </button>
 
-          {/* Low */}
           <button
-            onClick={() => placeBet("low", [])}
+            onClick={() => placeBet('low', [])}
             disabled={isBettingLocked}
             className="h-16 glass border-2 border-casino-gold/50 hover:bg-casino-gold/20 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative shadow-lg"
           >
             <div className="text-casino-gold text-lg">1-18</div>
             <div className="text-gray-400 text-xs">(1:1)</div>
-            {getBetCount("low") > 0 && (
+            {getBetCount('low') > 0 && (
               <span className="absolute -top-2 -right-2 w-7 h-7 bg-molt-orange rounded-full text-xs flex items-center justify-center shadow-lg">
-                {getBetCount("low")}
+                {getBetCount('low')}
               </span>
             )}
           </button>
 
-          {/* High */}
           <button
-            onClick={() => placeBet("high", [])}
+            onClick={() => placeBet('high', [])}
             disabled={isBettingLocked}
             className="h-16 glass border-2 border-casino-gold/50 hover:bg-casino-gold/20 rounded font-display font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed relative shadow-lg"
           >
             <div className="text-casino-gold text-lg">19-36</div>
             <div className="text-gray-400 text-xs">(1:1)</div>
-            {getBetCount("high") > 0 && (
+            {getBetCount('high') > 0 && (
               <span className="absolute -top-2 -right-2 w-7 h-7 bg-molt-orange rounded-full text-xs flex items-center justify-center shadow-lg">
-                {getBetCount("high")}
+                {getBetCount('high')}
               </span>
             )}
           </button>
         </div>
 
-        {/* Bet Info */}
-        {round.status !== "betting" && (
+        {isPlacingBets && (
           <div className="mt-4 text-center text-yellow-500 font-display font-bold animate-pulse">
-            {round.status === "spinning" ? "🎰 Spinning..." : "🎉 Round Complete!"}
+            🎰 Placing bets on-chain...
           </div>
         )}
       </div>

@@ -1,18 +1,35 @@
-"use client";
+'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { useAccount } from 'wagmi';
+import { formatUnits, parseUnits } from 'viem';
+import { 
+  useTokenBalances, 
+  useTokenAllowances, 
+  useApproveToken, 
+  usePlaceBets,
+  usePlayerBatches,
+  useBatchInfo,
+  useWatchSpinResults,
+  TokenType,
+  BetInput as ContractBetInput,
+} from '@/hooks/useRoulette';
+import { BET_TYPES, USDC_DECIMALS, SPIN_DECIMALS } from '@/config/contracts';
 
 export type BetType =
-  | "red"
-  | "black"
-  | "odd"
-  | "even"
-  | "low"
-  | "high"
-  | "dozen1"
-  | "dozen2"
-  | "dozen3"
-  | "number";
+  | 'red'
+  | 'black'
+  | 'odd'
+  | 'even'
+  | 'low'
+  | 'high'
+  | 'dozen1'
+  | 'dozen2'
+  | 'dozen3'
+  | 'column1'
+  | 'column2'
+  | 'column3'
+  | 'straight';
 
 export interface Bet {
   id: string;
@@ -21,237 +38,251 @@ export interface Bet {
   amount: number;
 }
 
-export interface Round {
-  roundId: number;
-  status: "betting" | "spinning" | "result";
-  timeRemaining: number;
-  winningNumber: number | null;
-  history: number[];
+export interface GameResult {
+  batchId: bigint;
+  winningNumber: number;
+  payout: string;
+  token: TokenType;
+  timestamp: number;
 }
 
 interface GameContextType {
-  round: Round;
+  // Wallet state
+  isConnected: boolean;
+  address: string | undefined;
+  
+  // Token state
+  selectedToken: TokenType;
+  setSelectedToken: (token: TokenType) => void;
+  balance: string;
+  allowance: bigint;
+  
+  // Betting state
   bets: Bet[];
-  balance: number;
   selectedChipValue: number;
   addBet: (type: BetType, numbers: number[], amount: number) => void;
   removeBet: (id: string) => void;
   clearBets: () => void;
-  submitBets: () => void;
   setSelectedChipValue: (value: number) => void;
-  recentWins: Array<{ player: string; amount: number; bet: string }>;
+  
+  // Transaction state
+  isApproving: boolean;
+  isPlacingBets: boolean;
+  txHash: string | undefined;
+  
+  // Actions
+  approveTokens: () => void;
+  submitBets: () => void;
+  needsApproval: boolean;
+  
+  // Results
+  pendingBatches: bigint[];
+  lastResult: GameResult | null;
+  history: number[];
+  
+  // UI state
+  showResultModal: boolean;
+  setShowResultModal: (show: boolean) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const useGame = () => {
   const context = useContext(GameContext);
-  if (!context) throw new Error("useGame must be used within GameProvider");
+  if (!context) throw new Error('useGame must be used within GameProvider');
   return context;
 };
 
-const RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
-const BLACK_NUMBERS = [2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35];
+// Chip values for each token
+const CHIP_VALUES_USDC = [1, 5, 10, 25, 50, 100];
+const CHIP_VALUES_SPIN = [1000, 5000, 10000, 25000, 50000, 100000];
 
 export const GameProvider = ({ children }: { children: ReactNode }) => {
-  const [round, setRound] = useState<Round>({
-    roundId: 1,
-    status: "betting",
-    timeRemaining: 60, // 60s betting phase for web3 tx confirmations
-    winningNumber: null,
-    history: [17, 23, 8, 31, 14, 26, 3, 35, 12, 29],
-  });
-
+  // Wallet connection
+  const { address, isConnected } = useAccount();
+  
+  // Token selection
+  const [selectedToken, setSelectedToken] = useState<TokenType>('USDC');
+  
+  // Balances and allowances
+  const { usdcBalance, spinBalance, usdcBalanceRaw, spinBalanceRaw, refetch: refetchBalances } = useTokenBalances();
+  const { usdcAllowance, spinAllowance, refetch: refetchAllowances } = useTokenAllowances();
+  
+  // Token approval
+  const { approveMax, isPending: isApproveLoading, isConfirming: isApproveConfirming, isSuccess: approveSuccess } = useApproveToken();
+  
+  // Place bets
+  const { placeBets, isPending: isPlaceBetsLoading, isConfirming: isPlaceBetsConfirming, isSuccess: placeBetsSuccess, hash: txHash, reset: resetPlaceBets } = usePlaceBets();
+  
+  // Player batches
+  const { batchIds, refetch: refetchBatches } = usePlayerBatches();
+  
+  // Betting state
   const [bets, setBets] = useState<Bet[]>([]);
-  const [balance, setBalance] = useState(10); // 10 ETH demo balance
-  const [selectedChipValue, setSelectedChipValue] = useState(0.01);
-  const [recentWins] = useState([
-    { player: "Agent007", amount: 1.5, bet: "Red" },
-    { player: "MoltMaster", amount: 3.5, bet: "#17" },
-    { player: "CryptoWhale", amount: 0.8, bet: "Odd" },
-  ]);
-
-  // Demo round timer
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRound((prev) => {
-        if (prev.status === "betting") {
-          if (prev.timeRemaining <= 1) {
-            // Generate winning number NOW at start of spin
-            const winningNumber = Math.floor(Math.random() * 38);
-            return { ...prev, status: "spinning", timeRemaining: 12, winningNumber };
-          }
-          return { ...prev, timeRemaining: prev.timeRemaining - 1 };
-        } else if (prev.status === "spinning") {
-          if (prev.timeRemaining <= 1) {
-            // Calculate winnings
-            const winnings = calculateWinnings(bets, prev.winningNumber!);
-            if (winnings > 0) {
-              setBalance((b) => b + winnings);
-            }
-            
-            return {
-              ...prev,
-              status: "result",
-              timeRemaining: 8,
-              history: [prev.winningNumber!, ...prev.history.slice(0, 9)],
-            };
-          }
-          return { ...prev, timeRemaining: prev.timeRemaining - 1 };
-        } else if (prev.status === "result") {
-          if (prev.timeRemaining <= 1) {
-            // Start new round
-            setBets([]); // Clear bets for new round
-            return {
-              roundId: prev.roundId + 1,
-              status: "betting",
-              timeRemaining: 60,
-              winningNumber: null,
-              history: prev.history,
-            };
-          }
-          return { ...prev, timeRemaining: prev.timeRemaining - 1 };
-        }
-        return prev;
+  const [selectedChipValue, setSelectedChipValue] = useState(5);
+  
+  // Results
+  const [lastResult, setLastResult] = useState<GameResult | null>(null);
+  const [history, setHistory] = useState<number[]>([]);
+  const [showResultModal, setShowResultModal] = useState(false);
+  
+  // Derived state
+  const balance = selectedToken === 'USDC' ? usdcBalance : spinBalance;
+  const allowance = selectedToken === 'USDC' ? usdcAllowance : spinAllowance;
+  const isApproving = isApproveLoading || isApproveConfirming;
+  const isPlacingBets = isPlaceBetsLoading || isPlaceBetsConfirming;
+  
+  // Calculate total bet amount
+  const totalBetAmount = bets.reduce((sum, bet) => sum + bet.amount, 0);
+  const decimals = selectedToken === 'USDC' ? USDC_DECIMALS : SPIN_DECIMALS;
+  const totalBetRaw = parseUnits(totalBetAmount.toString(), decimals);
+  const needsApproval = allowance < totalBetRaw;
+  
+  // Get pending batches (unsettled)
+  const pendingBatches = (batchIds || []).slice(-5) as bigint[];
+  
+  // Watch for spin results
+  useWatchSpinResults((batchId, player, winningNumber, totalPayout) => {
+    if (player.toLowerCase() === address?.toLowerCase()) {
+      const payout = formatUnits(totalPayout, decimals);
+      setLastResult({
+        batchId,
+        winningNumber,
+        payout,
+        token: selectedToken,
+        timestamp: Date.now(),
       });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [bets]);
-
-  const addBet = (type: BetType, numbers: number[], amount: number) => {
-    if (round.status !== "betting") return;
-    if (round.timeRemaining <= 15) return; // Bets locked - confirming transactions
-    if (balance < amount) return; // Not enough balance
-
+      setHistory(prev => [winningNumber, ...prev.slice(0, 19)]);
+      setShowResultModal(true);
+      refetchBalances();
+      refetchBatches();
+    }
+  });
+  
+  // Refetch after successful approval
+  useEffect(() => {
+    if (approveSuccess) {
+      refetchAllowances();
+    }
+  }, [approveSuccess, refetchAllowances]);
+  
+  // Refetch after successful bet placement
+  useEffect(() => {
+    if (placeBetsSuccess) {
+      setBets([]);
+      refetchBalances();
+      refetchBatches();
+    }
+  }, [placeBetsSuccess, refetchBalances, refetchBatches]);
+  
+  // Update chip values when token changes
+  useEffect(() => {
+    const chipValues = selectedToken === 'USDC' ? CHIP_VALUES_USDC : CHIP_VALUES_SPIN;
+    setSelectedChipValue(chipValues[1]); // Default to second chip
+    setBets([]); // Clear bets when switching tokens
+  }, [selectedToken]);
+  
+  // Add bet
+  const addBet = useCallback((type: BetType, numbers: number[], amount: number) => {
+    if (!isConnected) return;
+    
     const newBet: Bet = {
       id: Math.random().toString(36).substr(2, 9),
       type,
       numbers,
       amount,
     };
-
-    setBets((prev) => [...prev, newBet]);
-    setBalance((b) => b - amount);
-  };
-
-  const removeBet = (id: string) => {
-    if (round.status !== "betting") return;
     
-    const bet = bets.find((b) => b.id === id);
-    if (bet) {
-      setBalance((b) => b + bet.amount);
-      setBets((prev) => prev.filter((b) => b.id !== id));
-    }
-  };
-
-  const clearBets = () => {
-    if (round.status !== "betting") return;
-    
-    const totalRefund = bets.reduce((sum, bet) => sum + bet.amount, 0);
-    setBalance((b) => b + totalRefund);
+    setBets(prev => [...prev, newBet]);
+  }, [isConnected]);
+  
+  // Remove bet
+  const removeBet = useCallback((id: string) => {
+    setBets(prev => prev.filter(b => b.id !== id));
+  }, []);
+  
+  // Clear all bets
+  const clearBets = useCallback(() => {
     setBets([]);
-  };
-
-  const submitBets = () => {
-    // In real version, this would submit to blockchain
-    console.log("Bets submitted:", bets);
-  };
-
-  const calculateWinnings = (placedBets: Bet[], winningNum: number): number => {
-    let total = 0;
+  }, []);
+  
+  // Approve tokens
+  const approveTokens = useCallback(() => {
+    approveMax(selectedToken);
+  }, [approveMax, selectedToken]);
+  
+  // Submit bets to contract
+  const submitBets = useCallback(() => {
+    if (bets.length === 0 || needsApproval) return;
     
-    placedBets.forEach((bet) => {
-      let won = false;
-      let multiplier = 0;
-
-      switch (bet.type) {
-        case "number":
-          if (bet.numbers.includes(winningNum)) {
-            won = true;
-            multiplier = 35;
-          }
-          break;
-        case "red":
-          if (RED_NUMBERS.includes(winningNum)) {
-            won = true;
-            multiplier = 1;
-          }
-          break;
-        case "black":
-          if (BLACK_NUMBERS.includes(winningNum)) {
-            won = true;
-            multiplier = 1;
-          }
-          break;
-        case "odd":
-          if (winningNum > 0 && winningNum <= 36 && winningNum % 2 === 1) {
-            won = true;
-            multiplier = 1;
-          }
-          break;
-        case "even":
-          if (winningNum > 0 && winningNum <= 36 && winningNum % 2 === 0) {
-            won = true;
-            multiplier = 1;
-          }
-          break;
-        case "low":
-          if (winningNum >= 1 && winningNum <= 18) {
-            won = true;
-            multiplier = 1;
-          }
-          break;
-        case "high":
-          if (winningNum >= 19 && winningNum <= 36) {
-            won = true;
-            multiplier = 1;
-          }
-          break;
-        case "dozen1":
-          if (winningNum >= 1 && winningNum <= 12) {
-            won = true;
-            multiplier = 2;
-          }
-          break;
-        case "dozen2":
-          if (winningNum >= 13 && winningNum <= 24) {
-            won = true;
-            multiplier = 2;
-          }
-          break;
-        case "dozen3":
-          if (winningNum >= 25 && winningNum <= 36) {
-            won = true;
-            multiplier = 2;
-          }
-          break;
+    // Convert bets to contract format
+    const contractBets: ContractBetInput[] = bets.map(bet => {
+      let betType: keyof typeof BET_TYPES;
+      let number = 0;
+      
+      if (bet.type === 'straight') {
+        betType = 'straight';
+        number = bet.numbers[0];
+      } else {
+        betType = bet.type as keyof typeof BET_TYPES;
       }
-
-      if (won) {
-        total += bet.amount + bet.amount * multiplier;
-      }
+      
+      return {
+        betType,
+        number,
+        amount: bet.amount.toString(),
+      };
     });
-
-    return total;
-  };
-
+    
+    placeBets(selectedToken, contractBets);
+  }, [bets, needsApproval, selectedToken, placeBets]);
+  
   return (
     <GameContext.Provider
       value={{
-        round,
-        bets,
+        // Wallet
+        isConnected,
+        address,
+        
+        // Token
+        selectedToken,
+        setSelectedToken,
         balance,
+        allowance,
+        
+        // Betting
+        bets,
         selectedChipValue,
         addBet,
         removeBet,
         clearBets,
-        submitBets,
         setSelectedChipValue,
-        recentWins,
+        
+        // Transactions
+        isApproving,
+        isPlacingBets,
+        txHash,
+        
+        // Actions
+        approveTokens,
+        submitBets,
+        needsApproval,
+        
+        // Results
+        pendingBatches,
+        lastResult,
+        history,
+        
+        // UI
+        showResultModal,
+        setShowResultModal,
       }}
     >
       {children}
     </GameContext.Provider>
   );
 };
+
+// Export chip values for use in components
+export const getChipValues = (token: TokenType) => 
+  token === 'USDC' ? CHIP_VALUES_USDC : CHIP_VALUES_SPIN;
