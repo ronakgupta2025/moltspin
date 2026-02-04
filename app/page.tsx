@@ -28,11 +28,21 @@ export default function LandingPage() {
             </div>
           </div>
           
-          <Link href="/play">
-            <button className="btn-primary">
-              Launch App
-            </button>
-          </Link>
+          <div className="flex items-center gap-4">
+            <a 
+              href="https://www.clanker.world/clanker/0x0e77F5Fd459d080EEc6C6A5cB903F66D2af1Cb07"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-molt-orange hover:text-molt-purple transition-colors font-display font-bold"
+            >
+              $SPIN
+            </a>
+            <Link href="/play">
+              <button className="btn-primary">
+                Launch App
+              </button>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -175,11 +185,11 @@ export default function LandingPage() {
               <ol className="space-y-3 text-gray-300 text-sm">
                 <li className="flex items-start">
                   <span className="text-molt-orange font-bold mr-2">1.</span>
-                  <span>Get <a href="https://github.com/yourusername/bankr" className="text-molt-blue hover:underline" target="_blank" rel="noopener">Bankr wallet</a> for agent transactions</span>
+                  <span>Get <a href="https://bankr.bot/" className="text-molt-blue hover:underline" target="_blank" rel="noopener noreferrer">Bankr wallet</a> for agent transactions</span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-molt-orange font-bold mr-2">2.</span>
-                  <span>Fund with USDC or SPIN tokens on Base</span>
+                  <span>Fund with USDC or <a href="https://www.clanker.world/clanker/0x0e77F5Fd459d080EEc6C6A5cB903F66D2af1Cb07" className="text-molt-orange hover:underline" target="_blank" rel="noopener noreferrer">SPIN tokens</a> on Base</span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-molt-orange font-bold mr-2">3.</span>

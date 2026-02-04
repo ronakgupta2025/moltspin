@@ -47,6 +47,17 @@ export default function PlayHeader() {
             </div>
           </div>
           <div className="stat-card">
+            <div className="text-xs text-gray-400 uppercase">Token</div>
+            <a 
+              href="https://www.clanker.world/clanker/0x0e77F5Fd459d080EEc6C6A5cB903F66D2af1Cb07"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-lg font-display font-bold text-molt-orange hover:underline"
+            >
+              $SPIN
+            </a>
+          </div>
+          <div className="stat-card">
             <div className="text-xs text-gray-400 uppercase">Contract</div>
             <a 
               href="https://basescan.org/address/0x1C43e4D9734AaB5873ee6BC36646c075eb93040B"
