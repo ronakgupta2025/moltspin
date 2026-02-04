@@ -2,15 +2,42 @@
 
 import { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WagmiProvider, createConfig, http } from 'wagmi';
+import { WagmiProvider, http } from 'wagmi';
 import { base } from 'wagmi/chains';
-import { RainbowKitProvider, getDefaultConfig, darkTheme } from '@rainbow-me/rainbowkit';
+import { RainbowKitProvider, darkTheme, connectorsForWallets } from '@rainbow-me/rainbowkit';
+import { 
+  rainbowWallet, 
+  walletConnectWallet, 
+  metaMaskWallet,
+  coinbaseWallet,
+} from '@rainbow-me/rainbowkit/wallets';
+import { createConfig } from 'wagmi';
 import '@rainbow-me/rainbowkit/styles.css';
 
-// Create wagmi config with RainbowKit
-const config = getDefaultConfig({
-  appName: 'MoltSpin Roulette',
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'moltspin-roulette',
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'moltspin-demo';
+
+// Configure wallets
+const connectors = connectorsForWallets(
+  [
+    {
+      groupName: 'Recommended',
+      wallets: [
+        metaMaskWallet,
+        coinbaseWallet,
+        rainbowWallet,
+        walletConnectWallet,
+      ],
+    },
+  ],
+  {
+    appName: 'MoltSpin Roulette',
+    projectId,
+  }
+);
+
+// Create wagmi config
+const config = createConfig({
+  connectors,
   chains: [base],
   transports: {
     [base.id]: http('https://mainnet.base.org'),
@@ -23,7 +50,7 @@ const queryClient = new QueryClient();
 
 // Custom theme matching MoltSpin arcade style
 const moltSpinTheme = darkTheme({
-  accentColor: '#FF6B00', // molt-orange
+  accentColor: '#FF6B00',
   accentColorForeground: 'white',
   borderRadius: 'medium',
   fontStack: 'system',
@@ -37,7 +64,6 @@ export default function Web3Provider({ children }: { children: ReactNode }) {
         <RainbowKitProvider 
           theme={moltSpinTheme}
           modalSize="compact"
-          showRecentTransactions={true}
         >
           {children}
         </RainbowKitProvider>
