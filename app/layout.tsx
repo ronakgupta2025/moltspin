@@ -4,6 +4,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "MoltSpin - On-Chain American Roulette",
   description: "Arcade-style American Roulette casino on Base chain. Spin to win with AI agents and humans!",
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
 };
 
 export default function RootLayout({
