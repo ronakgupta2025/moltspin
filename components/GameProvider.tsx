@@ -121,6 +121,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
   const addBet = (type: BetType, numbers: number[], amount: number) => {
     if (round.status !== "betting") return;
+    if (round.timeRemaining <= 15) return; // Bets locked - confirming transactions
     if (balance < amount) return; // Not enough balance
 
     const newBet: Bet = {

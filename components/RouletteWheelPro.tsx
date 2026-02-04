@@ -147,10 +147,7 @@ export default function RouletteWheelPro() {
   useEffect(() => {
     if (round.status === "spinning" && !spinStarted.current) {
       spinStarted.current = true;
-      setIsSpinning(true);
       setBallRadius(155);
-
-      if (soundsReady) wheelSounds.playWheelStart();
 
       const winningNumber = round.winningNumber;
       if (winningNumber === null) return;
@@ -160,23 +157,29 @@ export default function RouletteWheelPro() {
       if (winningIndex === -1) return;
 
       // Calculate target rotation
-      // Pointer is at top (0°). We need winning segment at top.
-      // Each segment is SEGMENT_ANGLE degrees. Segment 0 starts at -SEGMENT_ANGLE/2
       const targetAngle = -(winningIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2);
-      const fullSpins = 360 * 8; // 8 full rotations for dramatic effect
+      const fullSpins = 360 * 8; // 8 full rotations
       const newRotation = baseRotation.current + fullSpins + targetAngle - (baseRotation.current % 360);
       
-      // Set new rotation (Framer Motion will animate it)
-      setWheelRotation(newRotation);
-      baseRotation.current = newRotation;
+      // IMPORTANT: Set isSpinning FIRST, then rotation after a tick
+      // This ensures Framer Motion uses the correct duration
+      setIsSpinning(true);
+      
+      // Small delay to ensure isSpinning state is applied before rotation starts
+      setTimeout(() => {
+        if (soundsReady) wheelSounds.playWheelStart();
+        setWheelRotation(newRotation);
+        baseRotation.current = newRotation;
+      }, 50);
 
-      // Animate ball with requestAnimationFrame
-      const spinDuration = 10000; // 10 seconds spin animation
-      const startTime = performance.now();
-      let bounceCount = 0;
+      // Animate ball with requestAnimationFrame (start after small delay with wheel)
+      setTimeout(() => {
+        const spinDuration = 10000; // 10 seconds spin animation
+        const startTime = performance.now();
+        let bounceCount = 0;
 
-      const animateBall = (currentTime: number) => {
-        const elapsed = currentTime - startTime;
+        const animateBall = (currentTime: number) => {
+          const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / spinDuration, 1);
 
         // Ball spins opposite, faster
@@ -209,7 +212,8 @@ export default function RouletteWheelPro() {
         }
       };
 
-      requestAnimationFrame(animateBall);
+        requestAnimationFrame(animateBall);
+      }, 50); // Same delay as wheel start
     }
 
     if (round.status === "betting") {
@@ -252,12 +256,18 @@ export default function RouletteWheelPro() {
         </h2>
         <div className="flex items-center space-x-2">
           <div className={`w-3 h-3 rounded-full ${
-            round.status === "betting" ? "bg-green-500 animate-pulse" :
-            round.status === "spinning" ? "bg-yellow-500 animate-pulse" : "bg-blue-500"
+            round.status === "betting" 
+              ? (round.timeRemaining > 15 ? "bg-green-500 animate-pulse" : "bg-orange-500 animate-pulse")
+              : round.status === "spinning" 
+              ? "bg-yellow-500 animate-pulse" 
+              : "bg-blue-500"
           }`} />
           <span className="text-sm font-mono uppercase text-gray-300">
-            {round.status === "betting" ? "Place Your Bets" :
-             round.status === "spinning" ? "Spinning..." : "Results"}
+            {round.status === "betting" 
+              ? (round.timeRemaining > 15 ? "Place Your Bets" : "Confirming Txns...")
+              : round.status === "spinning" 
+              ? "Spinning..." 
+              : "Results"}
           </span>
         </div>
       </div>
