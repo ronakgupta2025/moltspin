@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-white font-body antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  .neon-text {
+    text-shadow: 0 0 10px currentColor,
+                 0 0 20px currentColor,
+                 0 0 30px currentColor;
+  }
+  
+  .neon-border {
+    box-shadow: 0 0 5px currentColor,
+                0 0 10px currentColor,
+                inset 0 0 5px currentColor;
+  }
+  
+  .glass {
+    @apply bg-white/5 backdrop-blur-md border border-white/10;
+  }
+  
+  .btn-primary {
+    @apply px-6 py-3 bg-gradient-to-r from-molt-orange to-casino-red 
+           text-white font-display font-bold rounded-lg
+           hover:shadow-neon transition-all duration-300
+           hover:scale-105 active:scale-95;
+  }
+  
+  .btn-secondary {
+    @apply px-6 py-3 glass text-white font-display font-bold rounded-lg
+           hover:bg-white/10 transition-all duration-300
+           border-2 border-molt-orange hover:shadow-neon;
+  }
+  
+  .chip {
+    @apply w-12 h-12 rounded-full flex items-center justify-center
+           font-bold text-sm cursor-pointer transition-all duration-200
+           hover:scale-110 active:scale-95 shadow-lg;
+  }
+  
+  .roulette-number {
+    @apply w-10 h-10 flex items-center justify-center
+           font-mono font-bold text-sm rounded cursor-pointer
+           transition-all duration-200 hover:scale-110;
+  }
+  
+  .stat-card {
+    @apply glass p-4 rounded-xl border border-molt-orange/30;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-surface/50;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-molt-orange/50 rounded-full hover:bg-molt-orange;
+}
+
+/* Arcade CRT effect (subtle) */
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.crt-effect::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.03);
+  animation: scan 8s linear infinite;
+  pointer-events: none;
+}
+
+/* Glow pulse animation */
+@keyframes glow-pulse {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  50% { opacity: 0.8; filter: brightness(1.2); }
+}
+
+.glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
